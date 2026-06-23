@@ -93,6 +93,7 @@ gitops-base/
 | Gitea | Helm (gitea-charts) | gitea | gitea.czw-sre.internal |
 | Kite | OCI Helm (ghcr.io) | kite | kite.czw-sre.internal |
 | Kite NodePort | raw YAML | kite | —（NodePort:30301） |
+| kdebug | raw YAML | kdebug | kdebug.czw-sre.internal |
 
 ## 设计原则
 
