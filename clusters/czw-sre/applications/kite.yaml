@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kite
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: oci://ghcr.io/kite-org/charts
+    chart: kite
+    targetRevision: 0.12.3
+    helm:
+      values: |
+        image:
+          tag: v0.12.3
+        deploymentStrategy:
+          type: Recreate
+        db:
+          type: sqlite
+          sqlite:
+            persistence:
+              pvc:
+                enabled: true
+                storageClass: nfs-client
+                size: 1Gi
+              mountPath: /data
+        ingress:
+          enabled: true
+          className: nginx
+          hosts:
+            - host: kite.czw-sre.internal
+              paths:
+                - path: /
+                  pathType: Prefix
+        service:
+          type: ClusterIP
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kite
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

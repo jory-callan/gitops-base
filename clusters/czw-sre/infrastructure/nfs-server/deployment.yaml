@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-server
+  namespace: nfs-storageclass
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-server
+  template:
+    metadata:
+      labels:
+        app: nfs-server
+    spec:
+      containers:
+        - name: nfs-server
+          image: itsthenetwork/nfs-server-alpine:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 2049
+              name: nfs
+            - containerPort: 20048
+              name: mountd
+            - containerPort: 111
+              name: rpcbind
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: nfs-storage
+              mountPath: /exports
+          env:
+            - name: SHARED_DIRECTORY
+              value: "/exports"
+      volumes:
+        - name: nfs-storage
+          persistentVolumeClaim:
+            claimName: nfs-server-data

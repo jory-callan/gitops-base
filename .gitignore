@@ -1,0 +1,9 @@
+# GitOps 资源配置
+# 排除 IDE / OS 垃圾文件
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.log

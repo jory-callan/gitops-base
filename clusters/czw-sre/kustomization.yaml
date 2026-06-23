@@ -1,0 +1,5 @@
+# ArgoCD 概述
+# 此 kustomization 收集所有子 Application，由 root App 通过 Kustomize 同步
+resources:
+  - infrastructure
+  - applications

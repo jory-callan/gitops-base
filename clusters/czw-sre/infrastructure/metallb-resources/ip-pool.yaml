@@ -1,0 +1,20 @@
+# MetalLB IP 地址池和 L2 宣告
+# sync-wave: 1，确保 MetalLB controller 已就绪
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.5.205-192.168.5.209
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - default-pool

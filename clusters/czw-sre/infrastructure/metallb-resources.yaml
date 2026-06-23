@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metallb-resources
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"  # 在 metallb 之后创建
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/jory-callan/gitops-base
+    targetRevision: HEAD
+    path: clusters/czw-sre/infrastructure/metallb-resources
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
