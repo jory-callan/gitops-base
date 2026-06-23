@@ -1,3 +1,4 @@
 resources:
   - gitea.yaml
   - kite.yaml
+  - kite-nodeport.yaml

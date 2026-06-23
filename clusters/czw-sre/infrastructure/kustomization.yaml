@@ -1,7 +1,0 @@
-resources:
-  - cilium.yaml
-  - metallb.yaml
-  - metallb-resources.yaml
-  - ingress-nginx.yaml
-  - nfs-server.yaml
-  - nfs-provisioner.yaml

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kite-nodeport
+  namespace: kite
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30301
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: kite
