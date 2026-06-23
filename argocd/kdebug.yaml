@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kite-nodeport
+  name: kdebug
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/jory-callan/gitops-base
     targetRevision: HEAD
-    path: clusters/czw-sre/applications/kite-nodeport
+    path: apps/kdebug
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:
