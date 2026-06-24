@@ -1,19 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: promtail
+  name: victoria-logs-collector
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: http://192.168.5.103:8081/repository/helm-hosted/
-    chart: promtail
-    targetRevision: 6.16.6
+    chart: victoria-logs-collector
+    targetRevision: 0.3.6
     helm:
       values: |
         config:
           clients:
-            - url: http://loki.loki.svc.cluster.local:3100/loki/api/v1/push
+            - url: http://victoria-logs.victorialogs.svc:9428/api/v1/push
         resources:
           requests:
             cpu: 50m
@@ -23,7 +23,7 @@ spec:
             memory: 128Mi
   destination:
     server: https://kubernetes.default.svc
-    namespace: loki
+    namespace: victorialogs
   syncPolicy:
     automated:
       prune: true
