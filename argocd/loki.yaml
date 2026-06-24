@@ -14,6 +14,12 @@ spec:
         deploymentMode: SingleBinary
         simpleScalable:
           replicas: 0
+        backend:
+          replicas: 0
+        read:
+          replicas: 0
+        write:
+          replicas: 0
         loki:
           auth_enabled: false
           commonConfig:
