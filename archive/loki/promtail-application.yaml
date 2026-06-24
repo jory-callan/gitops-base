@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: promtail
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: http://192.168.5.103:8081/repository/helm-hosted/
+    chart: promtail
+    targetRevision: 6.16.6
+    helm:
+      values: |
+        config:
+          clients:
+            - url: http://loki.loki.svc.cluster.local:3100/loki/api/v1/push
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: loki
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
