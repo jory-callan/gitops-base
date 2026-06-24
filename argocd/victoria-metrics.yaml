@@ -63,6 +63,13 @@ spec:
               cpu: 300m
               memory: 256Mi
           defaultDashboardsTimezone: Asia/Shanghai
+          plugins:
+            - victoriametrics-logs-datasource
+          additionalDataSources:
+            - name: VictoriaLogs
+              type: victoriametrics-logs-datasource
+              access: proxy
+              url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
