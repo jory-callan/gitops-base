@@ -1,0 +1,37 @@
+# Internal PKI for *.czw-sre.internal domains
+# CA 链: selfsigned-ca → ca-root → internal-ca
+# 应用可引用 internal-ca 签署域名证书
+
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-ca
+spec:
+  selfSigned: {}
+
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ca-root
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: czw-sre.internal CA
+  secretName: ca-root-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  duration: 87600h  # 10 years
+  issuerRef:
+    name: selfsigned-ca
+    kind: ClusterIssuer
+
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: internal-ca
+spec:
+  ca:
+    secretName: ca-root-secret

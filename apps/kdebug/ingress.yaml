@@ -3,8 +3,14 @@ kind: Ingress
 metadata:
   name: kdebug
   namespace: kdebug
+  annotations:
+    cert-manager.io/cluster-issuer: internal-ca
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - kdebug.czw-sre.internal
+      secretName: kdebug-tls
   rules:
     - host: kdebug.czw-sre.internal
       http:
