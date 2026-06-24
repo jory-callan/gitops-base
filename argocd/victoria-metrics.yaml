@@ -1,0 +1,74 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: victoria-metrics
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://victoriametrics.github.io/helm-charts
+    chart: victoria-metrics-k8s-stack
+    targetRevision: 0.85.2
+    helm:
+      values: |
+        # Single-node VM for lightweight resource usage
+        vmsingle:
+          enabled: true
+          spec:
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+        # Disable heavy cluster mode
+        vmcluster:
+          enabled: false
+        vmalert:
+          enabled: false
+        vmalertmanager:
+          enabled: false
+
+        # Node metrics
+        node-exporter:
+          enabled: true
+
+        # Kubernetes state metrics
+        kube-state-metrics:
+          enabled: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+        # Grafana dashboards
+        grafana:
+          enabled: true
+          adminPassword: admin123
+          ingress:
+            enabled: true
+            ingressClassName: nginx
+            hosts:
+              - grafana.czw-sre.internal
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+          defaultDashboardsTimezone: Asia/Shanghai
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

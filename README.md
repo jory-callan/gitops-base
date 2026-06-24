@@ -8,13 +8,17 @@
 gitops-base/
 ├── README.md
 ├── argocd/         ← Application CRD 定义（由 root App of Apps 自动管理）
-│   ├── root.yaml             → App of Apps（自动同步整个 argocd/ 目录）
-│   ├── project.yaml          → ArgoCD Project 定义
-│   ├── cert-manager.yaml     → Helm: cert-manager (TLS 证书管理)
-│   ├── cert-manager-resources.yaml  → ClusterIssuer / CA 资源
-│   ├── gitea.yaml            → Helm: Gitea
-│   ├── kite.yaml             → OCI Helm + raw service.yaml
-│   └── kdebug.yaml           → raw YAML manifests
+│   ├── root.yaml                        → App of Apps（自动同步整个 argocd/ 目录）
+│   ├── project.yaml                     → ArgoCD Project 定义
+│   ├── metrics-server.yaml              → Helm: Metrics Server（kubectl top）
+│   ├── victoria-metrics.yaml            → Helm: VM + node-exporter + kube-state-metrics + Grafana
+│   ├── loki.yaml                        → Helm: Loki 日志聚合
+│   ├── promtail.yaml                    → Helm: Promtail 日志采集
+│   ├── cert-manager.yaml                → Helm: cert-manager（TLS 证书管理）
+│   ├── cert-manager-resources.yaml      → ClusterIssuer / CA 资源
+│   ├── gitea.yaml                       → Helm: Gitea
+│   ├── kite.yaml                        → OCI Helm + raw service.yaml
+│   └── kdebug.yaml                      → raw YAML manifests
 └── apps/           ← 非 Helm 应用的原始 K8s 资源
     ├── cert-manager/
     │   └── cluster-issuer.yaml   ← 内部 CA (selfsigned → internal-ca)
@@ -34,11 +38,14 @@ gitops-base/
 ```
 root (argocd/root.yaml)
   └── 自动管理 argocd/ 下所有 Application
-       ├── cert-manager          → Helm install cert-manager + CRDs
-       ├── cert-manager-resources → ClusterIssuer / 内部 CA
-       ├── gitea                 → Helm
-       ├── kite                  → OCI Helm + raw service
-       └── kdebug                → raw YAML (HTTPS via cert-manager)
+       ├── metrics-server          → kubelet / Pod 指标
+       ├── victoria-metrics        → 监控 + Grafana
+       ├── loki + promtail         → 日志聚合
+       ├── cert-manager            → TLS 证书
+       ├── cert-manager-resources  → 内部 CA
+       ├── gitea                   → Git 服务
+       ├── kite                    → OCI Helm + raw service
+       └── kdebug                  → raw YAML (HTTPS ✓)
 ```
 
 ### 内部 PKI 体系
@@ -208,6 +215,9 @@ kubectl get ns | grep -E 'gitea|kite|kdebug'
 
 | 应用 | 安装方式 | 命名空间 | 域名 | 证书 |
 |------|---------|----------|------|------|
+| metrics-server | Helm (k8s-sigs) | kube-system | — | — |
+| victoria-metrics | Helm (VM) | monitoring | grafana.czw-sre.internal | 待接入 internal-ca |
+| loki + promtail | Helm (grafana) | loki | — | — |
 | cert-manager | Helm (jetstack) | cert-manager | — | — |
 | Gitea | Helm (gitea-charts) | gitea | gitea.czw-sre.internal | 待接入 internal-ca |
 | Kite | OCI Helm (ghcr.io) + raw service | kite | kite.czw-sre.internal | 待接入 internal-ca |
