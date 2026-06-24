@@ -1,6 +1,7 @@
 # ArgoCD Helm values
 # Installed via bootstrap (not managed by GitOps)
-# Usage: helm upgrade argocd argo/argo-cd -n argocd -f bootstrap/argocd-values.yaml
+# Chart version: argo/argo-cd=7.8.2
+# Usage: helm upgrade argocd argo/argo-cd -n argocd --version 7.8.2 -f bootstrap/argocd-values.yaml
 applicationSet:
   enabled: true
 configs:
@@ -16,16 +17,11 @@ server:
   ingress:
     enabled: true
     ingressClassName: nginx
+    hostname: argocd.czw-sre.internal
     annotations:
       cert-manager.io/cluster-issuer: internal-ca
-    hosts:
-      - argocd.czw-sre.internal
-    paths:
-      - /
-    tls:
-      - hosts:
-          - argocd.czw-sre.internal
-        secretName: argocd-tls
+    path: /
+    tls: true
   service:
     port: 80
     type: ClusterIP

@@ -1,0 +1,11 @@
+# Metrics Server Helm values
+# Referenced by argocd/metrics-server/application.yaml via $values/apps/metrics-server/values.yaml
+args:
+  - --kubelet-insecure-tls
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 150m
+    memory: 128Mi

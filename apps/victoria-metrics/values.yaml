@@ -1,0 +1,68 @@
+# Victoria Metrics K8s Stack Helm values
+# Referenced by argocd/victoria-metrics/application.yaml via $values/apps/victoria-metrics/values.yaml
+
+# Single-node VM for lightweight resource usage
+vmsingle:
+  enabled: true
+  spec:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+# Disable heavy cluster mode
+vmcluster:
+  enabled: false
+vmalert:
+  enabled: false
+vmalertmanager:
+  enabled: false
+
+# Node metrics
+node-exporter:
+  enabled: true
+
+# Kubernetes state metrics
+kube-state-metrics:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# Grafana dashboards
+grafana:
+  enabled: true
+  adminPassword: admin123
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: internal-ca
+    hosts:
+      - grafana.czw-sre.internal
+    tls:
+      - hosts:
+          - grafana.czw-sre.internal
+        secretName: grafana-tls
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  defaultDashboardsTimezone: Asia/Shanghai
+  plugins:
+    - victoriametrics-logs-datasource
+  additionalDataSources:
+    - name: VictoriaLogs
+      type: victoriametrics-logs-datasource
+      access: proxy
+      url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428

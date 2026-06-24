@@ -1,0 +1,12 @@
+# Cert Manager Helm values
+# Referenced by argocd/cert-manager/application.yaml via $values/apps/cert-manager/values.yaml
+crds:
+  enabled: true
+replicaCount: 1
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi

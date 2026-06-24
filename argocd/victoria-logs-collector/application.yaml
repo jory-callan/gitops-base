@@ -5,21 +5,16 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    repoURL: http://192.168.5.103:8081/repository/helm-hosted/
-    chart: victoria-logs-collector
-    targetRevision: 0.3.6
-    helm:
-      values: |
-        remoteWrite:
-          - url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
+  sources:
+    - repoURL: http://192.168.5.103:8081/repository/helm-hosted/
+      chart: victoria-logs-collector
+      targetRevision: 0.3.6
+      helm:
+        valueFiles:
+          - $values/apps/victoria-logs-collector/values.yaml
+    - repoURL: https://github.com/jory-callan/gitops-base
+      targetRevision: HEAD
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: victorialogs

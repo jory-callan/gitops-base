@@ -1,0 +1,17 @@
+# Victoria Logs Helm values
+# Referenced by argocd/victoria-logs/application.yaml via $values/apps/victoria-logs/values.yaml
+server:
+  retentionPeriod: 7
+  persistentVolume:
+    enabled: true
+    storageClassName: nfs-client
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

@@ -1,0 +1,31 @@
+# Kite Helm values
+# Referenced by argocd/kite/application.yaml via $values/apps/kite/values.yaml
+image:
+  tag: v0.12.3
+deploymentStrategy:
+  type: Recreate
+db:
+  type: sqlite
+  sqlite:
+    persistence:
+      pvc:
+        enabled: true
+        storageClass: nfs-client
+        size: 1Gi
+      mountPath: /data
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: internal-ca
+  hosts:
+    - host: kite.czw-sre.internal
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - kite.czw-sre.internal
+      secretName: kite-tls
+service:
+  type: ClusterIP

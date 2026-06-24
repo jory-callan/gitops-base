@@ -1,0 +1,70 @@
+# Gitea Helm values
+# Referenced by argocd/gitea/application.yaml via $values/apps/gitea/values.yaml
+image:
+  registry: ""
+  repository: gitea/gitea
+  tag: 1.26.4
+  pullPolicy: IfNotPresent
+persistence:
+  enabled: true
+  storageClass: nfs-client
+  size: 10Gi
+  accessModes:
+    - ReadWriteMany
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: internal-ca
+  hosts:
+    - host: gitea.czw-sre.internal
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - gitea.czw-sre.internal
+      secretName: gitea-tls
+gitea:
+  config:
+    server:
+      DOMAIN: gitea.czw-sre.internal
+      ROOT_URL: https://gitea.czw-sre.internal
+      HTTP_PORT: 3000
+      PROTOCOL: http
+      OFFLINE_MODE: false
+      DISABLE_SSH: false
+      START_SSH_SERVER: false
+      SSH_DOMAIN: gitea.czw-sre.internal
+      LFS_START_SERVER: true
+    database:
+      DB_TYPE: sqlite3
+      PATH: /data/gitea.db
+    session:
+      PROVIDER: file
+    security:
+      INSTALL_LOCK: false
+      PASSWORD_COMPLEXITY: off
+    service:
+      DISABLE_REGISTRATION: false
+      REQUIRE_SIGNIN_VIEW: false
+postgresql:
+  enabled: false
+postgresql-ha:
+  enabled: false
+valkey-cluster:
+  enabled: false
+valkey:
+  enabled: false
+memcached:
+  enabled: false
+replicaCount: 1
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+startupProbe:
+  enabled: true

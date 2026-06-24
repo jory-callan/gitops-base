@@ -1,0 +1,11 @@
+# Victoria Logs Collector Helm values
+# Referenced by argocd/victoria-logs-collector/application.yaml via $values/apps/victoria-logs-collector/values.yaml
+remoteWrite:
+  - url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
