@@ -11,6 +11,9 @@ spec:
     targetRevision: 6.32.0
     helm:
       values: |
+        deploymentMode: SingleBinary
+        simpleScalable:
+          replicas: 0
         loki:
           auth_enabled: false
           commonConfig:
