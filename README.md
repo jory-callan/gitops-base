@@ -61,6 +61,41 @@ kubectl get application -n argocd -w
 - [kite](argocd/kite/README.md)
 - [kdebug](argocd/kdebug/README.md)
 
+## 日常操作
+
+### 手动触发 ArgoCD 同步
+
+Git push 后不想等 3 分钟轮询：
+
+```bash
+# 仅刷新（重新拉取 Git，对比 diff）
+kubectl annotate application <app> -n argocd argocd.argoproj.io/refresh= --overwrite
+
+# 刷新 + 强制同步（对比后立即应用）
+kubectl annotate application <app> -n argocd argocd.argoproj.io/force-sync= --overwrite
+
+# 例：kdebug 立即应用 v1.0.2
+kubectl annotate application kdebug -n argocd argocd.argoproj.io/force-sync= --overwrite
+```
+
+### 查看同步状态
+
+```bash
+# 所有应用概览
+kubectl get application -n argocd
+
+# 单个应用详情（错误信息、同步日志）
+kubectl get application <app> -n argocd -o wide
+kubectl describe application <app> -n argocd
+```
+
+### 查看 Pod 滚动进度
+
+```bash
+kubectl get pods -n <ns> -o wide -w
+kubectl describe pod -n <ns> <pod> | grep -E "Pulling|Pulled|Error|Failed|BackOff|Image:"
+```
+
 ## 添加新应用
 
 1. 创建 `argocd/<name>/application.yaml`
