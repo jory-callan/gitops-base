@@ -6,11 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    # 原始: https://github.com/jory-callan/gitops-base
-    # Git CLI 通过 insteadOf 走 gh-proxy 代理
     repoURL: https://github.com/jory-callan/gitops-base
     targetRevision: HEAD
-    path: apps/cert-manager
+    path: apps/cert-manager-resources
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:

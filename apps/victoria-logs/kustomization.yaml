@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: victoria-logs-single
+    repo: http://192.168.5.103:8081/repository/helm-hosted/
+    version: 0.13.8
+    releaseName: victoria-logs
+    namespace: victorialogs
+    valuesFile: values.yaml

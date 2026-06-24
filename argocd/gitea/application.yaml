@@ -5,18 +5,10 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  sources:
-    - repoURL: https://dl.gitea.com/charts/
-      chart: gitea
-      targetRevision: 12.6.0
-      helm:
-        valueFiles:
-          - $values/apps/gitea/values.yaml
-    # 原始: https://github.com/jory-callan/gitops-base
-    # Go HTTP 客户端不走 gitconfig，需 gh-proxy
-    - repoURL: https://gh-proxy.com/https://github.com/jory-callan/gitops-base
-      targetRevision: HEAD
-      ref: values
+  source:
+    repoURL: https://github.com/jory-callan/gitops-base
+    targetRevision: HEAD
+    path: apps/gitea
   destination:
     server: https://kubernetes.default.svc
     namespace: gitea

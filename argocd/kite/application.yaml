@@ -5,22 +5,10 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  sources:
-    # 原始: oci://ghcr.io/kite-org/charts, chart: kite
-    # ArgoCD OCI 不支持 --repo 格式，需用完整路径
-    - repoURL: oci://ghcr.io/kite-org/charts/kite
-      targetRevision: 0.12.3
-      helm:
-        valueFiles:
-          - $values/apps/kite/values.yaml
-    # 原始: https://github.com/jory-callan/gitops-base
-    # Go HTTP 客户端不走 gitconfig，需 gh-proxy
-    - repoURL: https://gh-proxy.com/https://github.com/jory-callan/gitops-base
-      targetRevision: HEAD
-      ref: values
-    - repoURL: https://gh-proxy.com/https://github.com/jory-callan/gitops-base
-      targetRevision: HEAD
-      path: apps/kite
+  source:
+    repoURL: https://github.com/jory-callan/gitops-base
+    targetRevision: HEAD
+    path: apps/kite
   destination:
     server: https://kubernetes.default.svc
   syncPolicy:

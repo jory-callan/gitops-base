@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: victoria-metrics-k8s-stack
+    repo: http://192.168.5.103:8081/repository/helm-hosted/
+    version: 0.85.2
+    releaseName: victoria-metrics
+    namespace: monitoring
+    valuesFile: values.yaml

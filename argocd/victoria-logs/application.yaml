@@ -5,18 +5,10 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  sources:
-    - repoURL: http://192.168.5.103:8081/repository/helm-hosted/
-      chart: victoria-logs-single
-      targetRevision: 0.13.8
-      helm:
-        valueFiles:
-          - $values/apps/victoria-logs/values.yaml
-    # 原始: https://github.com/jory-callan/gitops-base
-    # Go HTTP 客户端不走 gitconfig，需 gh-proxy
-    - repoURL: https://gh-proxy.com/https://github.com/jory-callan/gitops-base
-      targetRevision: HEAD
-      ref: values
+  source:
+    repoURL: https://github.com/jory-callan/gitops-base
+    targetRevision: HEAD
+    path: apps/victoria-logs
   destination:
     server: https://kubernetes.default.svc
     namespace: victorialogs
