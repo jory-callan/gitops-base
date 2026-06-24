@@ -1,0 +1,31 @@
+# ArgoCD Helm values
+# Installed via bootstrap (not managed by GitOps)
+# Usage: helm upgrade argocd argo/argo-cd -n argocd -f bootstrap/argocd-values.yaml
+applicationSet:
+  enabled: true
+configs:
+  params:
+    server.insecure: true
+dex:
+  enabled: false
+notifications:
+  enabled: false
+redis:
+  enabled: true
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: internal-ca
+    hosts:
+      - argocd.czw-sre.internal
+    paths:
+      - /
+    tls:
+      - hosts:
+          - argocd.czw-sre.internal
+        secretName: argocd-tls
+  service:
+    port: 80
+    type: ClusterIP

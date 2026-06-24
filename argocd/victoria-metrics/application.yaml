@@ -53,8 +53,14 @@ spec:
           ingress:
             enabled: true
             ingressClassName: nginx
+            annotations:
+              cert-manager.io/cluster-issuer: internal-ca
             hosts:
               - grafana.czw-sre.internal
+            tls:
+              - hosts:
+                  - grafana.czw-sre.internal
+                secretName: grafana-tls
           resources:
             requests:
               cpu: 100m
