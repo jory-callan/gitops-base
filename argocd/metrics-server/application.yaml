@@ -12,7 +12,9 @@ spec:
       helm:
         valueFiles:
           - $values/apps/metrics-server/values.yaml
-    - repoURL: https://github.com/jory-callan/gitops-base
+    # 原始: https://github.com/jory-callan/gitops-base
+    # Go HTTP 客户端不走 gitconfig，需 gh-proxy
+    - repoURL: https://gh-proxy.com/https://github.com/jory-callan/gitops-base
       targetRevision: HEAD
       ref: values
   destination:

@@ -25,3 +25,13 @@ server:
   service:
     port: 80
     type: ClusterIP
+repoServer:
+  extraVolumes:
+    - name: gitconfig
+      configMap:
+        name: argocd-gitconfig
+  extraVolumeMounts:
+    - name: gitconfig
+      mountPath: /home/argocd/.gitconfig
+      subPath: .gitconfig
+      readOnly: true
