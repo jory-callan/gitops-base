@@ -7,18 +7,47 @@
 ```
 gitops-base/
 ├── README.md
-├── argocd/         ← Application CRD 定义（ArgoCD 直接同步此目录）
-│   ├── gitea.yaml   → Helm chart (gitea-charts)
-│   ├── kite.yaml    → OCI Helm (ghcr.io) + raw service.yaml
-│   └── kdebug.yaml  → raw YAML manifests
+├── argocd/         ← Application CRD 定义（由 root App of Apps 自动管理）
+│   ├── root.yaml             → App of Apps（自动同步整个 argocd/ 目录）
+│   ├── project.yaml          → ArgoCD Project 定义
+│   ├── cert-manager.yaml     → Helm: cert-manager (TLS 证书管理)
+│   ├── cert-manager-resources.yaml  → ClusterIssuer / CA 资源
+│   ├── gitea.yaml            → Helm: Gitea
+│   ├── kite.yaml             → OCI Helm + raw service.yaml
+│   └── kdebug.yaml           → raw YAML manifests
 └── apps/           ← 非 Helm 应用的原始 K8s 资源
+    ├── cert-manager/
+    │   └── cluster-issuer.yaml   ← 内部 CA (selfsigned → internal-ca)
     ├── kite/
     │   └── service.yaml
     └── kdebug/
         ├── namespace.yaml
         ├── deployment.yaml
         ├── service.yaml
-        └── ingress.yaml
+        └── ingress.yaml          ← HTTPS via cert-manager ingress-shim
+```
+
+## 架构
+
+### App of Apps 管理模式
+
+```
+root (argocd/root.yaml)
+  └── 自动管理 argocd/ 下所有 Application
+       ├── cert-manager          → Helm install cert-manager + CRDs
+       ├── cert-manager-resources → ClusterIssuer / 内部 CA
+       ├── gitea                 → Helm
+       ├── kite                  → OCI Helm + raw service
+       └── kdebug                → raw YAML (HTTPS via cert-manager)
+```
+
+### 内部 PKI 体系
+
+```
+selfsigned-ca (ClusterIssuer)
+  └── ca-root (Certificate) → secret: ca-root-secret
+       └── internal-ca (ClusterIssuer)
+            └── 各应用通过 ingress-shim 自动签发证书
 ```
 
 ### 分层说明
@@ -35,16 +64,15 @@ gitops-base/
 - `argocd` CLI 已登录集群
 - 当前 kubeconfig 有权限管理目标命名空间
 
-## 使用
-
-### 部署应用
+## 快速开始
 
 ```bash
-# 部署单个应用
-kubectl apply -f argocd/kdebug.yaml
+# 一键部署所有基础设施（App of Apps 会自动管理所有子应用）
+kubectl apply -f argocd/root.yaml
 
-# 部署所有应用
-kubectl apply -f argocd/
+# 首次安装需等待 cert-manager 就绪后再同步证书资源
+kubectl wait --for=condition=Ready pods -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=120s
+kubectl annotate application cert-manager-resources -n argocd argocd.argoproj.io/refresh=true --overwrite
 ```
 
 ### 手动同步
@@ -178,11 +206,12 @@ kubectl get ns | grep -E 'gitea|kite|kdebug'
 
 ## 应用清单
 
-| 应用 | 安装方式 | 命名空间 | 域名 |
-|------|---------|----------|------|
-| Gitea | Helm (gitea-charts) | gitea | gitea.czw-sre.internal |
-| Kite | OCI Helm (ghcr.io) + raw service | kite | kite.czw-sre.internal |
-| kdebug | raw YAML | kdebug | kdebug.czw-sre.internal |
+| 应用 | 安装方式 | 命名空间 | 域名 | 证书 |
+|------|---------|----------|------|------|
+| cert-manager | Helm (jetstack) | cert-manager | — | — |
+| Gitea | Helm (gitea-charts) | gitea | gitea.czw-sre.internal | 待接入 internal-ca |
+| Kite | OCI Helm (ghcr.io) + raw service | kite | kite.czw-sre.internal | 待接入 internal-ca |
+| kdebug | raw YAML | kdebug | kdebug.czw-sre.internal | ✅ HTTPS (internal-ca) |
 
 ## 常见问题
 
