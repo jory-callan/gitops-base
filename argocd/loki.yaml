@@ -49,6 +49,8 @@ spec:
           enabled: true
           storageClass: nfs-client
           size: 10Gi
+        chunksCache:
+          enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: loki
