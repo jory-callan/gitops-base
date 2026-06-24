@@ -9,3 +9,6 @@ helmCharts:
     namespace: cert-manager
     valuesFile: values.yaml
     includeCRDs: true
+
+resources:
+  - cluster-issuer.yaml
