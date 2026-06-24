@@ -7,7 +7,7 @@
 | 资源 | 说明 |
 |------|------|
 | Namespace | kdebug |
-| Deployment | ghcr.io/jory-callan/kdebug:v1.0.1 |
+| Deployment | ghcr.io/jory-callan/kdebug:v1.0.2 |
 | Service | ClusterIP :80 → :8080 |
 | Ingress | kdebug.czw-sre.internal (HTTPS) |
 

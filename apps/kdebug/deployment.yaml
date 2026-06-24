@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: kdebug
-          image: ghcr.io/jory-callan/kdebug:v1.0.1
+          image: ghcr.io/jory-callan/kdebug:v1.0.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -32,7 +32,7 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
             - name: VERSION
-              value: v1.0.1
+              value: v1.0.2
           livenessProbe:
             httpGet:
               path: /ping

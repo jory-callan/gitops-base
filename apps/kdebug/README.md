@@ -7,7 +7,7 @@
 | 文件 | 说明 |
 |------|------|
 | namespace.yaml | kdebug 命名空间 |
-| deployment.yaml | 运行 ghcr.io/jory-callan/kdebug:v1.0.1 |
+| deployment.yaml | 运行 ghcr.io/jory-callan/kdebug:v1.0.2 |
 | service.yaml | ClusterIP :80 → :8080 |
 | ingress.yaml | HTTPS via cert-manager internal-ca |
 
