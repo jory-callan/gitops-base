@@ -92,22 +92,17 @@ grafana:
   resources:
     requests:
       cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 300m
       memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
   defaultDashboardsTimezone: Asia/Shanghai
-  # ── VictoriaLogs 数据源 ──────────────────────────────
-  # 如启用需加 readinessProbe.initialDelaySeconds: 180
-  # plugins:
-  #   - victoriametrics-logs-datasource
-  # additionalDataSources:
-  #   - name: VictoriaLogs
-  #     type: victoriametrics-logs-datasource
-  #     access: proxy
-  #     url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428
+  # ── Dashboard 侧车 ───────────────────────────────────
+  # 自动加载 ConfigMap 中声明的 Dashboard 到 Grafana
   sidecar:
     datasources:
       enabled: false
     dashboards:
-      enabled: false
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
