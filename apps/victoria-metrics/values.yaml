@@ -1,12 +1,6 @@
 # Victoria Metrics K8s Stack Helm values
 # Referenced by argocd/victoria-metrics/application.yaml via $values/apps/victoria-metrics/values.yaml
 
-# ── 名称覆盖 ──────────────────────────────────────────
-# 缩短资源名，避免 63 字符限制（K8s DNS Label 规范）
-# 默认命名: {component}-{release}-{chartname}-{hash}
-# 覆盖后:  {component}-vmks-{hash}
-fullnameOverride: vmks
-
 # ── VictoriaMetrics Operator ────────────────────────────
 victoria-metrics-operator:
   enabled: true
