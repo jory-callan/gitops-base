@@ -18,3 +18,11 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      name: victoria-stack-victoria-metrics-operator-admission
+      jsonPointers:
+        - /webhooks
+    - kind: Secret
+      name: victoria-stack-victoria-metrics-operator-validation
