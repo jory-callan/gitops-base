@@ -66,6 +66,14 @@ kube-state-metrics:
       cpu: 200m
       memory: 256Mi
 
+# ── 控制平面组件抓取 ──────────────────────────────────
+# 禁用 kube-controller-manager Service 创建
+# 名称超 63 字符（K8s DNS Label 限制）
+kubeControllerManager:
+  enabled: true
+  service:
+    enabled: false
+
 # Grafana
 grafana:
   enabled: true
