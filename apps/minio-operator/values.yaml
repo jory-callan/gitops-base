@@ -1,0 +1,32 @@
+# MinIO Operator values
+# Referenced by apps/minio-operator/kustomization.yaml
+
+# ── Operator ──────────────────────────────────────────────
+operator:
+  image:
+    repository: minio/operator
+    tag: v4.3.7
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+      ephemeral-storage: 200Mi
+
+# ── Console (Web UI) ──────────────────────────────────────
+console:
+  image:
+    repository: minio/console
+    tag: v0.12.3
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  ingress:
+    enabled: false  # managed via kustomize resource
+
+# ── No tenant via chart — managed separately ──────────────
+tenants: []

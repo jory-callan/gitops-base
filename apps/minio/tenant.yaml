@@ -1,0 +1,50 @@
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata:
+  name: minio
+  namespace: minio
+  labels:
+    app: minio
+spec:
+  image: minio/minio:RELEASE.2025-10-15T17-29-55Z
+  imagePullPolicy: IfNotPresent
+
+  credsSecret:
+    name: minio-creds
+
+  pools:
+    - servers: 1
+      volumesPerServer: 1
+      volumeClaimTemplate:
+        metadata:
+          name: data
+        spec:
+          storageClassName: nfs-client
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+
+  mountPath: /export
+  subPath: /data
+  requestAutoCert: false
+  podManagementPolicy: OrderedReady
+
+  # ── Default buckets ─────────────────────────────────────
+  buckets:
+    - name: velero
+      region: us-east-1
+    - name: thanos
+      region: us-east-1
+    - name: loki
+      region: us-east-1
+
+  # ── Resource limits ─────────────────────────────────────
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

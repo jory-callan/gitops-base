@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minio-api
+  namespace: minio
+  annotations:
+    cert-manager.io/cluster-issuer: internal-ca
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    nginx.ingress.kubernetes.io/proxy-body-size: 0  # no limit for S3 uploads
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - minio-api.czw-sre.internal
+      secretName: minio-api-tls
+  rules:
+    - host: minio-api.czw-sre.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio  # S3 API service created by operator
+                port:
+                  number: 9000
