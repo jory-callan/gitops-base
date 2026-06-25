@@ -92,24 +92,22 @@ grafana:
       cpu: 300m
       memory: 256Mi
   defaultDashboardsTimezone: Asia/Shanghai
-  plugins:
-    - victoriametrics-logs-datasource
-  additionalDataSources:
-    - name: VictoriaLogs
-      type: victoriametrics-logs-datasource
-      access: proxy
-      url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428
+  # ── VictoriaLogs 数据源 ──────────────────────────────
+  # 启用后 Grafana 启动时需下载 victoriametrics-logs-datasource 插件
+  # 可大幅延长 readiness 时间（插件需从外网下载）
+  # 如需启用，取消下方注释，并增加 readinessProbe.initialDelaySeconds
+  # plugins:
+  #   - victoriametrics-logs-datasource
+  # additionalDataSources:
+  #   - name: VictoriaLogs
+  #     type: victoriametrics-logs-datasource
+  #     access: proxy
+  #     url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428
   # ── Sidecar 配置 ──────────────────────────────────────
-  # datasources sidecar 需要保留（动态加载 Grafana 数据源配置）
+  # datasources sidecar 不需要了（数据源静态配置即可）
   # dashboard sidecar 在小集群中 readiness probe 有问题，禁用
   sidecar:
     datasources:
-      enabled: true
-      label: grafana_datasource
+      enabled: false
     dashboards:
       enabled: false
-  # ── 增加 readiness 初始等待时间 ──────────────────────
-  # Grafana 13 启动时需要安装 victoriametrics-logs-datasource 插件
-  # 默认 30s 超时不够，延长到 180s
-  readinessProbe:
-    initialDelaySeconds: 180
