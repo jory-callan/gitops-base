@@ -1,28 +1,13 @@
-# MinIO Operator values
+# MinIO Operator values (v7.x)
 # Referenced by apps/minio-operator/kustomization.yaml
 
-# ── Operator ──────────────────────────────────────────────
+# Operator v7.1.1 默认使用 quay.io/minio/operator:v7.1.1
+# 无需额外配置镜像地址
+
 operator:
-  image:
-    repository: 192.168.5.103:5002/minio/operator
-    tag: v4.3.7
-    pullPolicy: IfNotPresent
   replicaCount: 1
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
       ephemeral-storage: 200Mi
-
-# ── Console (Web UI) ──────────────────────────────────────
-console:
-  image:
-    repository: 192.168.5.103:5002/minio/console
-    tag: v0.12.3
-    pullPolicy: IfNotPresent
-  replicaCount: 0
-  ingress:
-    enabled: false  # managed via kustomize resource
-
-# ── No tenant via chart — managed separately ──────────────
-tenants: []

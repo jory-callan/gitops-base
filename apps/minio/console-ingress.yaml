@@ -1,26 +1,25 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: minio-api
+  name: minio-console
   namespace: minio
   annotations:
     cert-manager.io/cluster-issuer: internal-ca
     nginx.ingress.kubernetes.io/backend-protocol: HTTP
-    nginx.ingress.kubernetes.io/proxy-body-size: "0"  # S3 上传无限制
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - minio-api.czw-sre.internal
-      secretName: minio-api-tls
+        - minio.czw-sre.internal
+      secretName: minio-console-tls
   rules:
-    - host: minio-api.czw-sre.internal
+    - host: minio.czw-sre.internal
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: minio  # S3 API service（operator 自动创建）
+                name: minio-console  # Web Console service（operator 自动创建）
                 port:
-                  number: 80
+                  number: 9090

@@ -6,3 +6,4 @@ resources:
   - secret.yaml
   - tenant.yaml
   - ingress.yaml
+  - console-ingress.yaml
