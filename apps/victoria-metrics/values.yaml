@@ -98,6 +98,13 @@ grafana:
       memory: 512Mi
   defaultDashboardsTimezone: Asia/Shanghai
 
+  # ── 持久化存储 ────────────────────────────────────
+  # 防止重启后数据源配置、用户、Dashboard 全部丢失
+  persistence:
+    enabled: true
+    storageClassName: nfs-client
+    size: 5Gi
+
   # ── Dashboard 侧车 ───────────────────────────────────
   sidecar:
     datasources:
@@ -132,7 +139,9 @@ grafana:
       # 设置此项允许加载未签名插件
       allow_loading_unsigned_plugins: victoriametrics-logs-datasource
 
-  # ── 插件安装（GitHub 国内不可达，用 initContainer + gh-proxy）──
+  # ── 插件安装（initContainer + gh-proxy）─────────────────
+  # 首次启动下载插件到持久存储的 /var/lib/grafana/plugins/
+  # 后续 Pod 重启时插件已存在则跳过下载
   extraInitContainers:
     - name: download-vl-plugin
       image: busybox:latest
@@ -141,14 +150,19 @@ grafana:
         - -c
         - |
           set -e
+          PLUGIN_DIR="/var/lib/grafana/plugins/victoriametrics-logs-datasource"
+          if [ -d "$PLUGIN_DIR" ] && [ -f "$PLUGIN_DIR/plugin.json" ]; then
+            echo "✅ Plugin already installed, skipping download"
+            exit 0
+          fi
           mkdir -p /var/lib/grafana/plugins
           cd /var/lib/grafana/plugins
-          echo "⬇️ Downloading victoriametrics-logs-datasource..."
+          echo "⬇️ Downloading victoriametrics-logs-datasource v0.28.0..."
           wget -q -O plugin.tar.gz \
             "https://gh-proxy.com/https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.28.0/victoriametrics-logs-datasource-v0.28.0.tar.gz"
           tar -xzf plugin.tar.gz
           rm plugin.tar.gz
-          echo "✅ Plugin installed: $(ls victoriametrics-logs-datasource/ | head -3)"
+          echo "✅ Plugin installed successfully"
       volumeMounts:
         - name: storage
           mountPath: /var/lib/grafana
