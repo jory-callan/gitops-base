@@ -31,6 +31,8 @@ vmsingle:
       limits:
         cpu: 500m
         memory: 512Mi
+    storage:
+      storageClassName: nfs-client
   ingress:
     enabled: true
     annotations:
