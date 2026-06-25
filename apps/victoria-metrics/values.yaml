@@ -1,7 +1,29 @@
 # Victoria Metrics K8s Stack Helm values
 # Referenced by argocd/victoria-metrics/application.yaml via $values/apps/victoria-metrics/values.yaml
 
-# Single-node VM for lightweight resource usage
+# ── VictoriaMetrics Operator ────────────────────────────
+# 控制 CRD 转换器、ServiceMonitor 兼容等行为
+victoria-metrics-operator:
+  enabled: true
+  operator:
+    # Prometheus ServiceMonitor/PodMonitor → VMServiceScrape 自动转换
+    # 关闭此选项：disable_prometheus_converter: true
+    disable_prometheus_converter: false
+  serviceMonitor:
+    # 为 operator 自身创建 ServiceMonitor（需先安装 CRD）
+    enabled: true
+
+# ── VMAgent（指标采集器）────────────────────────────────
+vmagent:
+  enabled: true
+  spec:
+    selectAllByDefault: true          # 自动发现所有 VMServiceScrape
+    scrapeInterval: 20s
+    port: "8429"
+    extraArgs:
+      promscrape.streamParse: "true"
+
+# ── VMSingle（指标存储，单节点）─────────────────────────
 vmsingle:
   enabled: true
   spec:
@@ -13,7 +35,7 @@ vmsingle:
         cpu: 500m
         memory: 512Mi
 
-# Disable heavy cluster mode
+# Disable heavyweight cluster components
 vmcluster:
   enabled: false
 vmalert:
