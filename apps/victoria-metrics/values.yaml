@@ -2,39 +2,25 @@
 # Referenced by argocd/victoria-metrics/application.yaml via $values/apps/victoria-metrics/values.yaml
 
 # ── VictoriaMetrics Operator ────────────────────────────
-# 控制 CRD 转换器、ServiceMonitor 兼容等行为
 victoria-metrics-operator:
   enabled: true
   operator:
     # Prometheus ServiceMonitor/PodMonitor → VMServiceScrape 自动转换
-    # 关闭此选项：disable_prometheus_converter: true
     disable_prometheus_converter: false
   serviceMonitor:
-    # 为 operator 自身创建 ServiceMonitor（需先安装 CRD）
     enabled: true
 
 # ── VMAgent（指标采集器）────────────────────────────────
 vmagent:
   enabled: true
   spec:
-    selectAllByDefault: true          # 自动发现所有 VMServiceScrape
+    selectAllByDefault: true
     scrapeInterval: 20s
     port: "8429"
     extraArgs:
       promscrape.streamParse: "true"
 
-# ── Kubernetes 控制平面组件抓取 ────────────────────────
-# 禁用 kubeControllerManager 和 kubeScheduler 的 Service 创建
-# 名称超 63 字符，K8s 拒绝创建，会导致 ArgoCD 同步卡住
-kubeControllerManager:
-  enabled: true                   # 抓取指标（通过 PodIP 直接抓取）
-  service:
-    enabled: false                # 不创建 Service
-kubeScheduler:
-  service:
-    enabled: false                # 不创建 Service
-
-# ── VMSingle（指标存储，单节点）─────────────────────────
+# ── VMSingle（指标存储 + API 查询）─────────────────────
 vmsingle:
   enabled: true
   spec:
@@ -45,6 +31,17 @@ vmsingle:
       limits:
         cpu: 500m
         memory: 512Mi
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: internal-ca
+    ingressClassName: nginx
+    hosts:
+      - metrics.czw-sre.internal
+    tls:
+      - secretName: vm-metrics-tls
+        hosts:
+          - metrics.czw-sre.internal
 
 # Disable heavyweight cluster components
 vmcluster:
@@ -69,7 +66,7 @@ kube-state-metrics:
       cpu: 200m
       memory: 256Mi
 
-# Grafana dashboards
+# Grafana
 grafana:
   enabled: true
   adminPassword: admin123
@@ -93,9 +90,7 @@ grafana:
       memory: 256Mi
   defaultDashboardsTimezone: Asia/Shanghai
   # ── VictoriaLogs 数据源 ──────────────────────────────
-  # 启用后 Grafana 启动时需下载 victoriametrics-logs-datasource 插件
-  # 可大幅延长 readiness 时间（插件需从外网下载）
-  # 如需启用，取消下方注释，并增加 readinessProbe.initialDelaySeconds
+  # 如启用需加 readinessProbe.initialDelaySeconds: 180
   # plugins:
   #   - victoriametrics-logs-datasource
   # additionalDataSources:
@@ -103,9 +98,6 @@ grafana:
   #     type: victoriametrics-logs-datasource
   #     access: proxy
   #     url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428
-  # ── Sidecar 配置 ──────────────────────────────────────
-  # datasources sidecar 不需要了（数据源静态配置即可）
-  # dashboard sidecar 在小集群中 readiness probe 有问题，禁用
   sidecar:
     datasources:
       enabled: false

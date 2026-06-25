@@ -15,3 +15,18 @@ server:
     limits:
       cpu: 500m
       memory: 512Mi
+
+# ── VictoriaLogs Web UI Ingress ─────────────────────────
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: internal-ca
+  hosts:
+    - name: logs.czw-sre.internal
+      path:
+        - /
+      port: http
+  tls:
+    - secretName: vl-logs-tls
+      hosts:
+        - logs.czw-sre.internal
