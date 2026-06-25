@@ -99,3 +99,12 @@ grafana:
       type: victoriametrics-logs-datasource
       access: proxy
       url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428
+  # ── Sidecar 配置 ──────────────────────────────────────
+  # datasources sidecar 需要保留（动态加载 Grafana 数据源配置）
+  # dashboard sidecar 在小集群中 readiness probe 有问题，禁用
+  sidecar:
+    datasources:
+      enabled: true
+      label: grafana_datasource
+    dashboards:
+      enabled: false
