@@ -50,3 +50,7 @@ spec:
       region: us-east-1
     - name: loki
       region: us-east-1
+    - name: victorial-logs
+      region: us-east-1
+    - name: victorial-metrics
+      region: us-east-1
