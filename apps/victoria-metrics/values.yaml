@@ -107,11 +107,18 @@ grafana:
       label: grafana_dashboard
       labelValue: "1"
 
-  # ── VictoriaLogs 数据源（声明式）─────────────────────
+  # ── 数据源（声明式）──────────────────────────────────
   datasources:
     datasources.yaml:
       apiVersion: 1
       datasources:
+        # Metrics - VMSingle（Prometheus 兼容，无需插件）
+        - name: Metrics
+          type: prometheus
+          access: proxy
+          url: http://vmsingle-victoria-stack-victoria-metrics-k8s-stack.monitoring.svc:8428
+          isDefault: true
+        # Logs - VictoriaLogs（需安装 victoriametrics-logs-datasource 插件）
         - name: VictoriaLogs
           type: victoriametrics-logs-datasource
           access: proxy
@@ -128,19 +135,20 @@ grafana:
   # ── 插件安装（GitHub 国内不可达，用 initContainer + gh-proxy）──
   extraInitContainers:
     - name: download-vl-plugin
-      image: alpine:latest
+      image: busybox:latest
       command:
         - sh
         - -c
         - |
-          apk add --no-cache curl tar
+          set -e
+          mkdir -p /var/lib/grafana/plugins
           cd /var/lib/grafana/plugins
           echo "⬇️ Downloading victoriametrics-logs-datasource..."
-          curl -sLo plugin.tar.gz \
+          wget -q -O plugin.tar.gz \
             "https://gh-proxy.com/https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.28.0/victoriametrics-logs-datasource-v0.28.0.tar.gz"
           tar -xzf plugin.tar.gz
           rm plugin.tar.gz
-          echo "✅ Plugin installed: $(ls victoriametrics-logs-datasource/ | head -5)"
+          echo "✅ Plugin installed: $(ls victoriametrics-logs-datasource/ | head -3)"
       volumeMounts:
         - name: storage
           mountPath: /var/lib/grafana
