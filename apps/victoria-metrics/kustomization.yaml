@@ -5,6 +5,6 @@ helmCharts:
   - name: victoria-metrics-k8s-stack
     repo: http://192.168.5.103:8081/repository/helm-hosted/
     version: 0.85.2
-    releaseName: vm
+    releaseName: victoria-stack
     namespace: monitoring
     valuesFile: values.yaml
