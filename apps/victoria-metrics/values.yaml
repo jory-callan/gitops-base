@@ -97,8 +97,8 @@ grafana:
       cpu: 500m
       memory: 512Mi
   defaultDashboardsTimezone: Asia/Shanghai
+
   # ── Dashboard 侧车 ───────────────────────────────────
-  # 自动加载 ConfigMap 中声明的 Dashboard 到 Grafana
   sidecar:
     datasources:
       enabled: false
@@ -106,3 +106,41 @@ grafana:
       enabled: true
       label: grafana_dashboard
       labelValue: "1"
+
+  # ── VictoriaLogs 数据源（声明式）─────────────────────
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: VictoriaLogs
+          type: victoriametrics-logs-datasource
+          access: proxy
+          url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428
+          isDefault: false
+
+  # ── Grafana 配置（grafana.ini）────────────────────────
+  grafana.ini:
+    plugins:
+      # 该插件为社区/商业插件，未经 Grafana Labs 签名
+      # 设置此项允许加载未签名插件
+      allow_loading_unsigned_plugins: victoriametrics-logs-datasource
+
+  # ── 插件安装（GitHub 国内不可达，用 initContainer + gh-proxy）──
+  extraInitContainers:
+    - name: download-vl-plugin
+      image: alpine:latest
+      command:
+        - sh
+        - -c
+        - |
+          apk add --no-cache curl tar
+          cd /var/lib/grafana/plugins
+          echo "⬇️ Downloading victoriametrics-logs-datasource..."
+          curl -sLo plugin.tar.gz \
+            "https://gh-proxy.com/https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.28.0/victoriametrics-logs-datasource-v0.28.0.tar.gz"
+          tar -xzf plugin.tar.gz
+          rm plugin.tar.gz
+          echo "✅ Plugin installed: $(ls victoriametrics-logs-datasource/ | head -5)"
+      volumeMounts:
+        - name: storage
+          mountPath: /var/lib/grafana
