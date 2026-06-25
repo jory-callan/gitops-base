@@ -108,3 +108,8 @@ grafana:
       label: grafana_datasource
     dashboards:
       enabled: false
+  # ── 增加 readiness 初始等待时间 ──────────────────────
+  # Grafana 13 启动时需要安装 victoriametrics-logs-datasource 插件
+  # 默认 30s 超时不够，延长到 180s
+  readinessProbe:
+    initialDelaySeconds: 180
