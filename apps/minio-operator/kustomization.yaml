@@ -9,6 +9,3 @@ helmCharts:
     namespace: minio-operator
     valuesFile: values.yaml
     includeCRDs: true
-
-resources:
-  - console-ingress.yaml

@@ -4,7 +4,7 @@
 # ── Operator ──────────────────────────────────────────────
 operator:
   image:
-    repository: minio/operator
+    repository: 192.168.5.103:5002/minio/operator
     tag: v4.3.7
     pullPolicy: IfNotPresent
   replicaCount: 1
@@ -17,14 +17,10 @@ operator:
 # ── Console (Web UI) ──────────────────────────────────────
 console:
   image:
-    repository: minio/console
+    repository: 192.168.5.103:5002/minio/console
     tag: v0.12.3
     pullPolicy: IfNotPresent
-  replicaCount: 1
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
+  replicaCount: 0
   ingress:
     enabled: false  # managed via kustomize resource
 
