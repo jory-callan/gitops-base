@@ -23,6 +23,17 @@ vmagent:
     extraArgs:
       promscrape.streamParse: "true"
 
+# ── Kubernetes 控制平面组件抓取 ────────────────────────
+# 禁用 kubeControllerManager 和 kubeScheduler 的 Service 创建
+# 名称超 63 字符，K8s 拒绝创建，会导致 ArgoCD 同步卡住
+kubeControllerManager:
+  enabled: true                   # 抓取指标（通过 PodIP 直接抓取）
+  service:
+    enabled: false                # 不创建 Service
+kubeScheduler:
+  service:
+    enabled: false                # 不创建 Service
+
 # ── VMSingle（指标存储，单节点）─────────────────────────
 vmsingle:
   enabled: true
