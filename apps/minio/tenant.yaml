@@ -54,3 +54,9 @@ spec:
       region: us-east-1
     - name: victorial-metrics
       region: us-east-1
+    - name: env-test
+      region: us-east-1
+    - name: public
+      region: us-east-1
+    - name: public-read
+      region: us-east-1

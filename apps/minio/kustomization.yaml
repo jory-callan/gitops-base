@@ -7,3 +7,5 @@ resources:
   - tenant.yaml
   - ingress.yaml
   - console-ingress.yaml
+  - secrets
+  - minio-setup
