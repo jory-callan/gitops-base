@@ -1,0 +1,41 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: kdebug-alerts
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/instance: victoria-stack
+spec:
+  groups:
+    - name: kdebug
+      rules:
+        # kdebug Pod 不可用（replicas < 1）
+        - alert: KdebugPodDown
+          expr: kube_deployment_status_replicas_available{deployment="kdebug",namespace="kdebug"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Kdebug Pod 不可用"
+            description: "kdebug 命名空间下的 kdebug Deployment 当前可用副本数为 0，已持续超过 1 分钟。"
+
+        # kdebug 频繁重启
+        - alert: KdebugPodRestarts
+          expr: increase(kube_pod_container_status_restarts_total{container="kdebug"}[5m]) > 3
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Kdebug 频繁重启"
+            description: "kdebug 容器在 5 分钟内重启超过 3 次。"
+
+        # HTTP 端点不可达（kdebug 的 ping 端口需要 ServiceMonitor 暴露 metrics 才生效）
+        # 此处作为占位，后续接入 /metrics 后可启用
+        # - alert: KdebugHTTPDown
+        #   expr: probe_success{job="kdebug",namespace="kdebug"} == 0
+        #   for: 1m
+        #   labels:
+        #     severity: critical
+        #   annotations:
+        #     summary: "Kdebug HTTP 端点不可达"
+        #     description: "kdebug 的 HTTP 健康检查端点已连续 1 分钟不可达。"

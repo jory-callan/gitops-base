@@ -76,6 +76,12 @@ alertmanager:
       group_wait: 10s
       group_interval: 30s
       repeat_interval: 6h
+      routes:
+        # kdebug 应用告警 → 2h 重复通知（覆盖全局 6h）
+        - matchers:
+            - namespace="kdebug"
+          receiver: feishu
+          repeat_interval: 2h
     receivers:
       - name: feishu
         webhook_configs:
