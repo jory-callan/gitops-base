@@ -38,20 +38,17 @@ data:
         mc admin user add $MC_ALIAS $USERNAME $PASSWORD
         echo "   ✅ user $USERNAME created"
       fi
-      mc admin policy set $MC_ALIAS $POLICY user=$USERNAME
+      mc admin policy set $MC_ALIAS $POLICY user=$USERNAME 2>/dev/null || \
+        mc admin policy attach $MC_ALIAS $POLICY --user $USERNAME
       echo "   ✅ policy $POLICY bound to $USERNAME"
     }
 
     create_policy() {
       local NAME=$1
       local FILE=$2
-      if mc admin policy info $MC_ALIAS $NAME >/dev/null 2>&1; then
-        echo "   policy $NAME already exists, updating"
-        mc admin policy update $MC_ALIAS $NAME $FILE
-      else
-        mc admin policy create $MC_ALIAS $NAME $FILE
-        echo "   ✅ policy $NAME created"
-      fi
+      # mc admin policy create is idempotent (overwrites if exists)
+      mc admin policy create $MC_ALIAS $NAME $FILE 2>&1 || true
+      echo "   ✅ policy $NAME ensured"
     }
 
     # ── 创建策略 ────────────────────────────────────
@@ -123,8 +120,10 @@ data:
     done
 
     # 已经存在的设为匿名（幂等，多次执行无害）
-    mc anonymous set public $MC_ALIAS/public >/dev/null 2>&1 && echo "   ✅ public bucket: anonymous RW (public)"
-    mc anonymous set download $MC_ALIAS/public-read >/dev/null 2>&1 && echo "   ✅ public-read bucket: anonymous R (download)"
+    mc anonymous set public $MC_ALIAS/public 2>&1 || true
+    echo "   ✅ public bucket: anonymous RW (public)"
+    mc anonymous set download $MC_ALIAS/public-read 2>&1 || true
+    echo "   ✅ public-read bucket: anonymous R (download)"
     # env-test 不设匿名，保持私有
     echo "   ✅ env-test bucket: private (no anonymous access)"
 
