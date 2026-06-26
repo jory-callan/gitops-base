@@ -90,6 +90,61 @@ configuration:
 
 ## 日常操作
 
+### Web Console
+
+当前社区版 Console 仅提供 Object Browser（浏览/上传/下载文件）。
+完整管理功能需通过 `mc` CLI 操作。
+
+### mc 命令行管理（完整管理能力）
+
+```bash
+# 进入 MinIO Pod
+kubectl exec -it -n minio minio-pool-0-0 -c minio -- sh
+
+# 初始化配置别名
+mc alias set local http://localhost:9000 minioadmin minioadmin
+
+# ── 用户管理 ─────────────────────────────────────
+mc admin user list local                 # 列出所有用户
+mc admin user add local newuser newpass   # 创建用户
+mc admin user disable local username      # 禁用用户
+mc admin user remove local username       # 删除用户
+
+# ── 策略管理 ─────────────────────────────────────
+mc admin policy list local                # 列出所有策略
+mc admin policy create local mypolicy policy.json  # 创建策略
+mc admin policy set local mypolicy user=username   # 为用户绑定策略
+
+# ── 组管理 ───────────────────────────────────────
+mc admin group list local                 # 列出所有组
+mc admin group add local groupname username  # 添加用户到组
+
+# ── 服务账号 ────────────────────────────────────
+mc admin user svcacct list local username  # 列出用户的服务账号
+mc admin user svcacct add local username   # 创建服务账号
+
+# ── 桶管理 ──────────────────────────────────────
+mc ls local                               # 列出所有桶
+mc mb local/newbucket                      # 创建桶
+mc rb local/bucketname                     # 删除桶
+
+# ── 配额与锁 ────────────────────────────────────
+mc admin bucket quota info local/bucket    # 查看桶配额
+mc admin bucket remote add local/bucket ...  # 配置桶复制
+
+# ── 集群状态 ────────────────────────────────────
+mc admin info local                        # 集群概览
+mc admin health local                      # 健康检查
+```
+
+### 外部使用 mc 连接
+
+```bash
+# 从集群外
+mc alias set remote https://minio-api.czw-sre.internal minioadmin minioadmin
+mc admin info remote
+```
+
 ```bash
 # 查看 Tenant 状态
 kubectl get tenant minio -n minio -o wide
