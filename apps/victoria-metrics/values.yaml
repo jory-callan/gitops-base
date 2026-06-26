@@ -50,13 +50,37 @@ vmsingle:
         hosts:
           - metrics.czw-sre.internal
 
-# Disable heavyweight cluster components
+# Disable cluster mode (not needed for single-node)
 vmcluster:
   enabled: false
+
+# ── 告警规则引擎 ──────────────────────────────────
 vmalert:
-  enabled: false
-vmalertmanager:
-  enabled: false
+  enabled: true
+  spec:
+    selectAllByDefault: true
+    evaluationInterval: 30s
+    # vmalert 通过 vmalertmanager 发送告警通知
+    # 无额外 notifier 配置，完全通过 alertmanager 路由
+
+# ── 告警管理 + 飞书通知 ──────────────────────────
+alertmanager:
+  enabled: true
+  spec:
+    replicaCount: 1
+    selectAllByDefault: true
+  config:
+    route:
+      receiver: feishu
+      group_by: ["alertname", "severity"]
+      group_wait: 10s
+      group_interval: 30s
+      repeat_interval: 6h
+    receivers:
+      - name: feishu
+        webhook_configs:
+          - url: "https://open.feishu.cn/open-apis/bot/v2/hook/fc5d3692-ef65-4e8c-8151-9509aeedccf5"
+            send_resolved: true
 
 # Node metrics
 node-exporter:
