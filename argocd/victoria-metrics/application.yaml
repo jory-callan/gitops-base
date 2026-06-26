@@ -21,8 +21,8 @@ spec:
   ignoreDifferences:
     - group: admissionregistration.k8s.io
       kind: ValidatingWebhookConfiguration
-      name: victoria-stack-victoria-metrics-operator-admission
+      name: victoria-stack-vk-admission
       jsonPointers:
         - /webhooks
     - kind: Secret
-      name: victoria-stack-victoria-metrics-operator-validation
+      name: victoria-stack-vk-validation

@@ -130,7 +130,7 @@ grafana:
         - name: Metrics
           type: prometheus
           access: proxy
-          url: http://vmsingle-victoria-stack-victoria-metrics-k8s-stack.monitoring.svc:8428
+          url: http://vmsingle-victoria-stack-vk.monitoring.svc:8428
           isDefault: true
         # Logs - VictoriaLogs（需安装 victoriametrics-logs-datasource 插件）
         - name: VictoriaLogs
