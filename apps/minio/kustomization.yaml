@@ -8,5 +8,6 @@ resources:
   - ingress.yaml
   - console-ingress.yaml
   - resourcequota.yaml
+  - networkpolicy.yaml
   - secrets
   - minio-setup
