@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/jory-callan/gitops-base
+    repoURL: https://gh-proxy.com/https://github.com/jory-callan/gitops-base
     targetRevision: HEAD
     path: apps/cert-manager
   destination:
