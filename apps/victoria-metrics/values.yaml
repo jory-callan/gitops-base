@@ -31,11 +31,11 @@ vmsingle:
   spec:
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 200m
+        memory: 1Gi
       limits:
-        cpu: 500m
-        memory: 512Mi
+        cpu: 1000m
+        memory: 2Gi
     # NFS 持久化存储（VictoriaMetrics 标准版不支持 S3 后端）
     storage:
       storageClassName: nfs-client
