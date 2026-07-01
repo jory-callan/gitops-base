@@ -102,11 +102,32 @@ data:
     POLICY
     create_policy public-read-policy $POLICY_DIR/public-read.json
 
+    # vm-storage: VictoriaMetrics + VictoriaLogs S3 后端
+    cat > $POLICY_DIR/vm-storage.json << 'POLICY'
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": ["s3:*"],
+          "Resource": [
+            "arn:aws:s3:::vm-metrics",
+            "arn:aws:s3:::vm-metrics/*",
+            "arn:aws:s3:::vm-logs",
+            "arn:aws:s3:::vm-logs/*"
+          ]
+        }
+      ]
+    }
+    POLICY
+    create_policy vm-storage-policy $POLICY_DIR/vm-storage.json
+
     # ── 创建用户并绑定策略 ──────────────────────────
     echo "👤 Setting up users..."
     create_user "env-test-user"    "et-s3k-9f8a2c7d4e1b"  "env-test-policy"
     create_user "public-rw-user"   "pr-s3k-3b6f9a2c7d1e"  "public-rw-policy"
     create_user "public-read-user" "prd-s3k-5a8c2e7d4b1f" "public-read-policy"
+    create_user "vm-storage-user"  "vm-s3k-7c3a1d9e2b5f"  "vm-storage-policy"
 
     # ── 设置桶匿名权限 ──────────────────────────────
     echo "🌐 Setting up anonymous bucket policies..."
@@ -129,9 +150,10 @@ data:
 
     echo ""
     echo "🎉 MinIO setup complete!"
-    echo "   env-test   → user: env-test-user    (private)"
-    echo "   public     → user: public-rw-user    (public RW)"
-    echo "   public-read → user: public-read-user (public R)"
+    echo "   env-test      → user: env-test-user    (private)"
+    echo "   public        → user: public-rw-user    (public RW)"
+    echo "   public-read   → user: public-read-user  (public R)"
+    echo "   vm-metrics/logs → user: vm-storage-user (VM S3 backend)"
 ---
 apiVersion: batch/v1
 kind: Job

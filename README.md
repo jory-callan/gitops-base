@@ -34,11 +34,12 @@ gitops-base/
 |------|------|
 | 集群 | k3s 3 节点 (2C8G40G) |
 | GitOps | ArgoCD + App of Apps |
-| 指标 | VictoriaMetrics (VMSingle) + vmagent |
-| 日志 | VictoriaLogs + Collector |
+| 指标 | VictoriaMetrics (VMSingle, MinIO S3 后端) |
+| 日志 | VictoriaLogs (MinIO S3 后端) |
 | 对象存储 | MinIO Operator + Tenant（quay.io 镜像）|
+| 备份 | Velero（MinIO S3 后端，每日资源备份）|
 | 证书 | cert-manager + 内部 CA |
-| 存储 | NFS (nfs-client) |
+| 存储 | NFS (nfs-client, 仅作本地缓存) |
 | 网络 | Cilium + MetalLB |
 | Ingress | ingress-nginx |
 | 镜像代理 | Nexus :5000-5006 |
@@ -63,6 +64,7 @@ kubectl get application -n argocd -w
 - [gitea](argocd/gitea/README.md)
 - [minio-operator](argocd/minio-operator/README.md)（对象存储 Operator）
 - [minio](argocd/minio/README.md)（对象存储租户）
+- [velero](argocd/velero/README.md)（集群备份）
 - [kite](argocd/kite/README.md)
 - [kdebug](argocd/kdebug/README.md)
 

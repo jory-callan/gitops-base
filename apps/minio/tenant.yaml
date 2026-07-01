@@ -60,3 +60,7 @@ spec:
       region: us-east-1
     - name: public-read
       region: us-east-1
+    - name: vm-metrics
+      region: us-east-1
+    - name: vm-logs
+      region: us-east-1

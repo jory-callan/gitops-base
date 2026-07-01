@@ -15,8 +15,8 @@
 
 ## 配置要点
 
+- 存储后端：**MinIO S3**（bucket: `vm-logs`，用户: `vm-storage-user`），NFS 仅用作 2Gi 本地索引缓存
 - 保留 7 天日志
-- 使用 NFS 持久化 10Gi
 - HTTP API: `victoria-logs-victoria-logs-single-server.victorialogs.svc:9428`
 
 ## 验证
