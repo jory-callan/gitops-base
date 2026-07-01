@@ -1,0 +1,42 @@
+# Redis 主从复制（HA 数据层）
+# 与 RedisSentinel 配合实现自动故障切换
+#
+# 架构：1 master + 2 replicas，3 节点反亲和
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: RedisReplication
+metadata:
+  name: redis-ha
+  namespace: redis
+  labels:
+    app.kubernetes.io/name: redis-ha
+spec:
+  clusterSize: 3
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v7.0.15
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: nfs-client
+        resources:
+          requests:
+            storage: 1Gi
+  # 节点反亲和 — 尽量分散到不同节点
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: redis-ha
+            topologyKey: kubernetes.io/hostname

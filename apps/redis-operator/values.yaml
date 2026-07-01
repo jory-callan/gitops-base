@@ -1,0 +1,27 @@
+# redis-operator values (v0.25.0)
+# Referenced by apps/redis-operator/kustomization.yaml
+
+redisOperator:
+  imageName: quay.io/opstree/redis-operator
+  imagePullPolicy: IfNotPresent
+
+  # 监控指标
+  metrics:
+    enabled: true
+    bindAddress: ":8080"
+
+  # 如需 webhook 功能（如 master-slave anti-affinity）可开启，但需要 cert-manager
+  webhook: false
+
+  rbac:
+    scope: "cluster"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+replicas: 1

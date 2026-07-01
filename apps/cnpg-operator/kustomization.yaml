@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: cloudnative-pg
+    repo: http://192.168.5.103:8081/repository/helm-hosted/
+    version: 0.29.0
+    releaseName: cnpg
+    namespace: cnpg-system
+    valuesFile: values.yaml
+    includeCRDs: true

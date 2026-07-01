@@ -1,0 +1,34 @@
+# CloudNativePG Operator values (v0.29.0 / app 1.30.0)
+# Referenced by apps/cnpg-operator/kustomization.yaml
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/cloudnative-pg/cloudnative-pg
+  pullPolicy: IfNotPresent
+
+config:
+  data: {}
+  # 控制 operator watch 哪些 namespace，空 = 全集群
+  clusterWide: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+crds:
+  create: true
+
+monitoring:
+  podMonitorEnabled: false
+  # Grafana Dashboard 由 victoria-metrics 统一管理，此处不创建
+  grafanaDashboard:
+    create: false
+
+# 默认监控查询，使 VMAgent 内置的 PostgreSQL 采集器可直接关联
+monitoringQueriesConfigMap:
+  create: true

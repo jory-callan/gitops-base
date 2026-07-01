@@ -1,0 +1,83 @@
+# CloudNativePG PostgreSQL 集群
+# 3 节点 HA 模式，NFS 持久化，每日全量备份到 MinIO
+#
+# ⚠️ NFS 注意事项：
+#   PostgreSQL 依赖 fsync 保证数据安全，NFS 的缓存行为可能导致
+#   已提交事务在节点宕机时丢失。当前为 demo/轻量使用，可接受此风险。
+#   未来如需生产级存储，只需将 storageClassName 改为 Longhorn / Local PV。
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  # ── 实例拓扑 ──────────────────────────────
+  instances: 3
+  minSyncReplicas: 1
+  maxSyncReplicas: 2
+  replicationSlots:
+    highAvailability:
+      enabled: true
+
+  # ── PostgreSQL 镜像 ───────────────────────
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+
+  # ── 存储 ──────────────────────────────────
+  storage:
+    storageClassName: nfs-client
+    size: 5Gi
+
+  # ── 资源（demo 低配）───────────────────────
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # ── 节点反亲和 ────────────────────────────
+  # 确保 3 个实例分布在不同的 k3s 节点上
+  affinity:
+    topologyKey: kubernetes.io/hostname
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - postgres
+          topologyKey: kubernetes.io/hostname
+
+  # ── 备份至 MinIO ──────────────────────────
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://postgres-backup/
+      endpointURL: http://minio.minio.svc:9000
+      s3Credentials:
+        accessKeyId:
+          name: minio-backup-creds
+          key: access-key
+        secretAccessKey:
+          name: minio-backup-creds
+          key: secret-key
+      wal:
+        compression: gzip
+        maxParallel: 1
+      data:
+        compression: gzip
+        jobs: 1
+    retentionPolicy: "7d"
+
+  # ── 监控 ──────────────────────────────────
+  # CNPG 自动创建默认监控查询 ConfigMap（cnpg-default-monitoring）
+  # VMAgent 可通过 ServiceMonitor 直接采集 PG 实例的 9187 端口
+  monitoring:
+    enablePodMonitor: false
+    # 使用 VictoriaMetrics operator 的 ServiceMonitor 转换能力
+    customQueriesConfigMap:
+      - name: cnpg-default-monitoring
+        key: queries

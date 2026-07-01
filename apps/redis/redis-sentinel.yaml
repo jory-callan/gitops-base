@@ -1,0 +1,24 @@
+# Redis Sentinel（HA 哨兵层）
+# 3 个 Sentinel 实例监控 redis-ha 的主从复制，
+# master 宕机时自动选举新主，无需人工介入。
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: RedisSentinel
+metadata:
+  name: redis-sentinel
+  namespace: redis
+  labels:
+    app.kubernetes.io/name: redis-sentinel
+spec:
+  clusterSize: 3
+  redisSentinelConfig:
+    redisReplicationName: redis-ha
+  kubernetesConfig:
+    image: quay.io/opstree/redis-sentinel:v7.0.15
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 64Mi

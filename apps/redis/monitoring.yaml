@@ -1,0 +1,46 @@
+# Redis 监控采集
+# redis-operator 会自动创建 Service，暴露 exporter 指标
+#
+# Service 命名规则：
+#   <cr-name>-headless  ← 集群内部
+# 指标端口为 9121（redis-exporter 默认）
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-ha
+  namespace: redis
+  labels:
+    app.kubernetes.io/name: redis-ha
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis-ha
+  namespaceSelector:
+    matchNames:
+      - redis
+  endpoints:
+    - port: redis-exporter
+      interval: 30s
+      params:
+        # 将 Redis 密码从 Secret 传入 exporter
+        # 此处占位，实际需根据 operator 创建的 Service 确认 label
+    - port: metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-sentinel
+  namespace: redis
+  labels:
+    app.kubernetes.io/name: redis-sentinel
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis-sentinel
+  namespaceSelector:
+    matchNames:
+      - redis
+  endpoints:
+    - port: metrics
+      interval: 30s

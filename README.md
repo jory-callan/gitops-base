@@ -14,6 +14,10 @@ gitops-base/
 │   ├── victoria-metrics/       监控（Metrics）+ Grafana 仪表盘
 │   ├── victoria-logs/          日志存储
 │   ├── victoria-logs-collector/日志采集 DaemonSet
+│   ├── cnpg-operator/          CloudNativePG Operator（PostgreSQL HA）
+│   ├── postgres/               PostgreSQL Cluster（数据面）
+│   ├── redis-operator/         Redis Operator（HA 哨兵模式）
+│   ├── redis/                  Redis HA（数据面）
 │   ├── cert-manager/           TLS 证书管理
 │   ├── gitea/                  Git 服务
 │   ├── minio-operator/         MinIO 对象存储 Operator
@@ -21,6 +25,10 @@ gitops-base/
 │   ├── kite/                  文件同步
 │   └── kdebug/                调试 Pod
 └── apps/                     ← 非 Helm 应用的原始 K8s 资源 + Helm values
+    ├── cnpg-operator/values.yaml
+    ├── postgres/cluster.yaml, secret.yaml, monitoring.yaml
+    ├── redis-operator/values.yaml
+    ├── redis/redis-replication.yaml, redis-sentinel.yaml
     ├── minio-operator/values.yaml
     ├── minio/namespace.yaml, secret.yaml, tenant.yaml, ingress*.yaml
     ├── cert-manager/cluster-issuer.yaml
@@ -37,6 +45,7 @@ gitops-base/
 | 指标 | VictoriaMetrics (VMSingle) + vmagent |
 | 日志 | VictoriaLogs + Collector |
 | 对象存储 | MinIO Operator + Tenant（quay.io 镜像）|
+| **数据库** | **CloudNativePG (PostgreSQL HA) / Redis Sentinel HA** |
 | 备份 | Velero（MinIO S3 后端，每日资源备份）|
 | 证书 | cert-manager + 内部 CA |
 | 存储 | NFS (nfs-client) |
@@ -64,6 +73,10 @@ kubectl get application -n argocd -w
 - [gitea](argocd/gitea/README.md)
 - [minio-operator](argocd/minio-operator/README.md)（对象存储 Operator）
 - [minio](argocd/minio/README.md)（对象存储租户）
+- [cnpg-operator](argocd/cnpg-operator/README.md)（PostgreSQL Operator）
+- [postgres](argocd/postgres/README.md)（PostgreSQL HA Cluster）
+- [redis-operator](argocd/redis-operator/README.md)（Redis Operator）
+- [redis](argocd/redis/README.md)（Redis HA）
 - [velero](argocd/velero/README.md)（集群备份）
 - [kite](argocd/kite/README.md)
 - [kdebug](argocd/kdebug/README.md)
@@ -119,3 +132,4 @@ kubectl describe pod -n <ns> <pod> | grep -E "Pulling|Pulled|Error|Failed|BackOf
 - docker.io 镜像拉取失败：使用 quay.io / Nexus 镜像代理
 - ArgoCD 接管已有资源时的字段不可变问题
 - MinIO Operator v7.x 相对 v4.x 有 CRD 字段变更
+- **PostgreSQL on NFS** — NFS 的 fsync 行为不符合 PG 的数据安全要求，当前为 demo 配置
