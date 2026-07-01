@@ -7,14 +7,14 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: redis-ha
+  name: redis-my-app
   namespace: redis
   labels:
-    app.kubernetes.io/name: redis-ha
+    app.kubernetes.io/name: redis-my-app
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: redis-ha
+      app.kubernetes.io/name: redis-my-app
   namespaceSelector:
     matchNames:
       - redis
@@ -30,14 +30,14 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: redis-sentinel
+  name: redis-my-app-sentinel
   namespace: redis
   labels:
-    app.kubernetes.io/name: redis-sentinel
+    app.kubernetes.io/name: redis-my-app-sentinel
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: redis-sentinel
+      app.kubernetes.io/name: redis-my-app-sentinel
   namespaceSelector:
     matchNames:
       - redis

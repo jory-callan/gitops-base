@@ -6,7 +6,7 @@
 ┌──────────────────────────────────────────┐
 │  redis namespace                         │
 │                                          │
-│  ┌─ RedisReplication (redis-ha) ───────┐ │
+│  ┌─ RedisReplication (redis-my-app) ───┐ │
 │  │  ┌──────┐  ┌──────┐  ┌──────┐      │ │
 │  │  │master│  │replica│  │replica│      │ │
 │  │  │pod-0 │←─│pod-1 │←─│pod-2 │      │ │
@@ -30,15 +30,15 @@
 | RedisReplication | storage | nfs-client / 1Gi |
 | RedisReplication | resource | 64m-256m / 64Mi-256Mi |
 | RedisSentinel | clusterSize | 3 |
-| RedisSentinel | 依赖 | 监控 `redis-ha` 复制组 |
+| RedisSentinel | 依赖 | 监控 `redis-my-app` 复制组 |
 
 ## 连接方式
 
 | 用途 | 地址 |
 |------|------|
-| 读写 Master | `redis-ha.<namespace>.svc:6379` |
+| 读写 Master | `redis-my-app.<namespace>.svc:6379` |
 | 读 Replica | 通过 sentinel 动态发现 |
-| Sentinel | `redis-sentinel.<namespace>.svc:26379` |
+| Sentinel | `redis-my-app-sentinel.<namespace>.svc:26379` |
 
 连接时应通过 Sentinel 获取当前 master 地址，而非写死一个 Service。
 

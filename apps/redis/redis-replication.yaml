@@ -5,10 +5,10 @@
 apiVersion: redis.redis.opstreelabs.in/v1beta2
 kind: RedisReplication
 metadata:
-  name: redis-ha
+  name: redis-my-app
   namespace: redis
   labels:
-    app.kubernetes.io/name: redis-ha
+    app.kubernetes.io/name: redis-my-app
 spec:
   clusterSize: 3
   kubernetesConfig:
@@ -38,5 +38,4 @@ spec:
           podAffinityTerm:
             labelSelector:
               matchLabels:
-                app.kubernetes.io/name: redis-ha
-            topologyKey: kubernetes.io/hostname
+                app.kubernetes.io/name: redis-my-app
