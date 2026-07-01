@@ -1,0 +1,93 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: infra-alerts
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/instance: victoria-stack
+spec:
+  groups:
+    # ── 基础设施层 ──────────────────────────────
+    - name: infra
+      rules:
+        # cert-manager 证书即将过期（30 天内）
+        - alert: CertManagerCertExpiry
+          expr: |
+            (certmanager_certificate_expiration_timestamp_seconds - time()) < 2592000
+            and certmanager_certificate_expiration_timestamp_seconds > 0
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "证书将在 30 天内过期"
+            description: "{{ $labels.name }} (namespace: {{ $labels.namespace }}) 将在 {{ $value | humanizeDuration }} 后过期，请检查 cert-manager 是否正常续签。"
+
+        # MinIO Tenant 不可用
+        - alert: MinioTenantDown
+          expr: |
+            kube_statefulset_status_replicas_ready{statefulset="minio-pool-0", namespace="minio"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "MinIO 租户不可用"
+            description: "MinIO pool-0 可用副本数为 0，S3 API 和所有依赖 MinIO 存储的应用（VictoriaLogs、VictoriaMetrics、Velero 等）将不可用。"
+
+        # Gitea 不可用
+        - alert: GiteaDown
+          expr: |
+            kube_deployment_status_replicas_available{deployment="gitea", namespace="gitea"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Gitea 不可用"
+            description: "Gitea deployment 可用副本数为 0，代码仓库服务中断。"
+
+        # VictoriaLogs 不可用
+        - alert: VictoriaLogsDown
+          expr: |
+            kube_statefulset_status_replicas_ready{statefulset=~"victoria-logs.*", namespace="victorialogs"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "VictoriaLogs 不可用"
+            description: "VictoriaLogs StatefulSet 可用副本数为 0，日志存储和查询完全中断。"
+
+        # VMSingle 不可用
+        - alert: VMSingleDown
+          expr: |
+            kube_statefulset_status_replicas_ready{statefulset=~"vmsingle.*", namespace="monitoring"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "VictoriaMetrics VMSingle 不可用"
+            description: "VMSingle StatefulSet 可用副本数为 0，指标存储、查询和所有告警规则全部中断。"
+
+    # ── 节点资源层 ──────────────────────────────
+    - name: node-resources
+      rules:
+        # 节点磁盘使用率 > 85%
+        - alert: NodeDiskPressure
+          expr: |
+            (1 - node_filesystem_avail_bytes{mountpoint="/", fstype!=""}
+            / node_filesystem_size_bytes{mountpoint="/", fstype!=""}) * 100 > 85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "节点磁盘使用率超过 85%"
+            description: "节点 {{ $labels.instance }} 根分区磁盘使用率 {{ $value | printf \"%.1f\" }}%，超过 85% 阈值，请检查并清理磁盘空间。"
+
+        # 节点内存使用率 > 90%
+        - alert: NodeMemoryPressure
+          expr: |
+            (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 90
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "节点内存使用率超过 90%"
+            description: "节点 {{ $labels.instance }} 内存使用率 {{ $value | printf \"%.1f\" }}%，超过 90% 阈值，可能存在 OOM 风险。"
