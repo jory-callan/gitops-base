@@ -6,7 +6,7 @@ metadata:
   labels:
     app: kdebug
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: kdebug
@@ -15,6 +15,27 @@ spec:
       labels:
         app: kdebug
     spec:
+      # ── 退出层：优雅下线 ─────────────────────────
+      terminationGracePeriodSeconds: 30
+
+      # ── 分布层：避免单节点集中 ───────────────────
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: kdebug
+                topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: kdebug
+
       containers:
         - name: kdebug
           image: ghcr.io/jory-callan/kdebug:v1.0.2
@@ -33,6 +54,22 @@ spec:
                   fieldPath: spec.nodeName
             - name: VERSION
               value: v1.0.2
+
+          # ── 资源层 ─────────────────────────────────
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+
+          # ── 健康层 ─────────────────────────────────
+          startupProbe:
+            httpGet:
+              path: /ping
+              port: 8080
+            failureThreshold: 15
+            periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /ping
@@ -45,10 +82,9 @@ spec:
               port: 8080
             initialDelaySeconds: 3
             periodSeconds: 5
-          resources:
-            requests:
-              cpu: 50m
-              memory: 32Mi
-            limits:
-              cpu: 200m
-              memory: 128Mi
+
+          # ── 退出层：preStop 等 iptables 更新 ────────
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 5"]

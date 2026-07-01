@@ -7,9 +7,22 @@
 | 资源 | 说明 |
 |------|------|
 | Namespace | kdebug |
-| Deployment | ghcr.io/jory-callan/kdebug:v1.0.2 |
+| Deployment | ghcr.io/jory-callan/kdebug:v1.0.2, replicas: 2 |
 | Service | ClusterIP :80 → :8080 |
 | Ingress | kdebug.czw-sre.internal (HTTPS) |
+| HPA | CPU 70%, min 2 / max 5 |
+| PDB | minAvailable: 1 |
+
+## 稳定性配置（7 层框架）
+
+| 层级 | 配置 |
+|------|------|
+| 资源层 | request: 50m/32Mi, limit: 128Mi memory（CPU limit 不设） |
+| 扩缩容 | HPA CPU 70%, 2~5 副本 |
+| 保护层 | PDB minAvailable: 1 |
+| 分布层 | podAntiAffinity (hostname) + topologySpread (zone) |
+| 健康层 | startupProbe → livenessProbe + readinessProbe |
+| 退出层 | terminationGracePeriodSeconds: 30 + preStop sleep 5s |
 
 ## 验证
 
