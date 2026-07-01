@@ -13,3 +13,4 @@ helmCharts:
 resources:
   - cluster-issuer.yaml
   - service-monitor.yaml
+  - resourcequota.yaml

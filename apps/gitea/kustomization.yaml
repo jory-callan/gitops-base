@@ -9,3 +9,6 @@ helmCharts:
     namespace: gitea
     valuesFile: values.yaml
     includeCRDs: true
+
+resources:
+  - resourcequota.yaml

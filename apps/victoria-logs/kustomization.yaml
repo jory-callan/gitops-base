@@ -8,3 +8,6 @@ helmCharts:
     releaseName: victoria-logs
     namespace: victorialogs
     valuesFile: values.yaml
+
+resources:
+  - resourcequota.yaml
