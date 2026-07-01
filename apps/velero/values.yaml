@@ -1,6 +1,25 @@
 # Velero values
 # Referenced by argocd/velero/application.yaml
 
+# ── 镜像配置 ───────────────────────────────
+# 国内 Docker Hub 不可达，依赖 k3s 节点 Nexus 镜像代理
+
+# ── CRD 安装 ───────────────────────────────
+# CRDs 通过 kustomization.yaml 的 includeCRDs 安装，跳过 chart 的 upgrade 钩子
+upgradeCRDs: false
+cleanUpCRDs: false
+
+# ── CRD 升级工具镜像 ───────────────────────
+# 国内 Docker Hub 不可达，使用阿里云镜像
+kubectl:
+  image:
+    repository: registry.cn-hangzhou.aliyuncs.com/bitnami/kubectl
+    tag: "1.31"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
 # ── AWS Plugin（MinIO S3 兼容）──────────────
 initContainers:
   - name: velero-plugin-for-aws
