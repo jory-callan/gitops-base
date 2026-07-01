@@ -39,3 +39,4 @@ spec:
             labelSelector:
               matchLabels:
                 app.kubernetes.io/name: redis-my-app
+            topologyKey: kubernetes.io/hostname
