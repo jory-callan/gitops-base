@@ -15,7 +15,7 @@
 
 - `vmsingle` 替代 `vmcluster`（小集群不需要集群模式）
 - Grafana 已预装 VictoriaLogs 插件和数据源
-- **存储后端：MinIO S3**（bucket: `vm-metrics`，用户: `vm-storage-user`），NFS 仅用作 2Gi 本地索引缓存
+- 禁用 `vmalert` / `vmalertmanager`（当前不启用告警）
 - **已启用 prometheus-operator CRD 兼容**（见下方 ServiceMonitor 章节）
 
 ## 应用指标采集对接
