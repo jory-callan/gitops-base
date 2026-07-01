@@ -88,6 +88,13 @@ kubectl get application -n argocd -w
 Git push 后不想等 3 分钟轮询：
 
 ```bash
+
+# 让 root App of Apps 立即重新扫描 argocd/ 目录
+kubectl annotate application root -n argocd argocd.argoproj.io/force-sync= --overwrite
+
+# 等几秒后看新应用出现
+kubectl get application -n argocd -w | grep -E "cnpg|postgres|redis"
+
 # 仅刷新（重新拉取 Git，对比 diff）
 kubectl annotate application <app> -n argocd argocd.argoproj.io/refresh= --overwrite
 

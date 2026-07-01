@@ -20,8 +20,11 @@ resources:
     cpu: 200m
     memory: 256Mi
 
+# CRDs 已在部署前通过 kubectl apply --server-side 直接安装
+# Helm 方式安装会因 clusters CRD (464KB) / poolers CRD (653KB)
+# 过大导致 metadata.annotations 超限 (256KB 限制)
 crds:
-  create: true
+  create: false
 
 monitoring:
   podMonitorEnabled: false

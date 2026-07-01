@@ -8,4 +8,6 @@ helmCharts:
     releaseName: redis-operator
     namespace: redis-operator
     valuesFile: values.yaml
-    includeCRDs: true
+    # CRDs 已通过 kubectl apply --server-side 直接安装
+    # Helm 方式安装会因 CRD 过大导致 metadata.annotations 超限
+    includeCRDs: false
