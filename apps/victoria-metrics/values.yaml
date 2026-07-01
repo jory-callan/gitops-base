@@ -192,7 +192,7 @@ grafana:
   # 后续 Pod 重启时插件已存在则跳过下载
   extraInitContainers:
     - name: download-vl-plugin
-      image: busybox:latest
+      image: busybox:1.38.0
       command:
         - sh
         - -c
