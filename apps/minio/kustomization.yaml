@@ -9,5 +9,6 @@ resources:
   - console-ingress.yaml
   - resourcequota.yaml
   - networkpolicy.yaml
+  - service-monitor.yaml
   - secrets
   - minio-setup
