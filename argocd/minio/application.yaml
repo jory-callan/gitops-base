@@ -12,15 +12,6 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: minio
-  ignoreDifferences:
-    - group: minio.min.io
-      kind: Tenant
-      jsonPointers:
-        - /spec/livenessProbe
-        - /spec/readinessProbe
-        - /spec/startupProbe
-        - /spec/terminationGracePeriodSeconds
-        - /spec/metadata
   syncPolicy:
     automated:
       prune: true

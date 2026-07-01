@@ -14,35 +14,6 @@ spec:
   configuration:
     name: minio-env-config
 
-  # ── 健康层 ───────────────────────────────────
-  livenessProbe:
-    httpGet:
-      path: /minio/health/live
-      port: 9000
-    initialDelaySeconds: 10
-    periodSeconds: 10
-    timeoutSeconds: 3
-    failureThreshold: 5
-  readinessProbe:
-    httpGet:
-      path: /minio/health/ready
-      port: 9000
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 3
-    failureThreshold: 3
-  startupProbe:
-    httpGet:
-      path: /minio/health/live
-      port: 9000
-    initialDelaySeconds: 3
-    periodSeconds: 5
-    failureThreshold: 60  # 5 分钟超时等待首次启动
-
-  # ── 退出层 ───────────────────────────────────
-  # NFS 环境下数据刷盘需要时间，给足够宽限期
-  terminationGracePeriodSeconds: 60
-
   # ── 环境变量 ─────────────────────────────────
   env:
     - name: MINIO_PROMETHEUS_AUTH_TYPE
@@ -51,14 +22,6 @@ spec:
       value: "EC:0"
     - name: MINIO_STORAGE_CLASS_RRS
       value: "EC:0"
-
-  # ── Pod 元数据 ───────────────────────────────
-  # VMagent 通过 label 发现 ServiceMonitor
-  metadata:
-    labels:
-      app: minio
-      app.kubernetes.io/name: minio
-      app.kubernetes.io/instance: minio
 
   pools:
     - name: pool-0
