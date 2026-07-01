@@ -11,4 +11,3 @@ helmCharts:
 
 resources:
   - resourcequota.yaml
-  - networkpolicy.yaml
