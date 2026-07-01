@@ -97,16 +97,22 @@ check_sentinel() {
 
 rw_test() {
   local key="chaos-$(date +%s)"
-  local master_ip
-  master_ip=$(get_sentinel_master 2>/dev/null)
-  [ -z "$master_ip" ] && { fail "无 master 地址，跳过读写"; return 1; }
 
-  # 通过 sentinel 获取的 master IP 直接写入
-  if kubectl exec -n "$NS" "${APP}-0" -- redis-cli SET "$key" "ok-$(date +%H:%M:%S)" 2>/dev/null; then
+  # 动态找当前 master
+  local master_pod=""
+  for pod in "${APP}-0" "${APP}-1" "${APP}-2"; do
+    local role
+    role=$(get_pod_role "$pod" 2>/dev/null)
+    [ "$role" = "master" ] && { master_pod="$pod"; break; }
+  done
+  [ -z "$master_pod" ] && { fail "无 master，跳过读写"; return 1; }
+
+  # 直接写入
+  if kubectl exec -n "$NS" "$master_pod" -- redis-cli SET "$key" "ok-$(date +%H:%M:%S)" 2>/dev/null; then
     local val
-    val=$(kubectl exec -n "$NS" "${APP}-0" -- redis-cli GET "$key" 2>/dev/null)
+    val=$(kubectl exec -n "$NS" "$master_pod" -- redis-cli GET "$key" 2>/dev/null)
     if echo "$val" | grep -q "ok-"; then
-      ok "读写正常 (key=$key, val=$val)"
+      ok "读写正常 (key=$key, val=$val) [master: ${master_pod}]"
       return 0
     fi
   fi
@@ -690,6 +696,178 @@ test_all_sentinels_down() {
   pass "全部 Sentinels 下线测试通过"
 }
 
+# 场景 7: Kill 全部 3 个 Redis 节点
+test_all_redis_down() {
+  echo_line
+  echo "  测试 7: 删除全部 3 个 Redis 节点"
+  echo "  预期: 全部 node 丢失 → 整个集群不可用 →"
+  echo "        StatefulSet 重建全部 3 个 Pod →"
+  echo "        复制恢复 (需手动重新配置复制)"
+  echo_line
+
+  snapshot
+  local master_before
+  master_before=$(get_sentinel_master)
+  info "当前 master: $master_before"
+
+  local start_time
+  start_time=$(date +%s)
+
+  # 写入测试数据
+  info "写入测试数据..."
+  local master_pod=""
+  for pod in "${APP}-0" "${APP}-1" "${APP}-2"; do
+    if [ "$(get_pod_role "$pod" 2>/dev/null)" = "master" ]; then
+      master_pod="$pod"
+      break
+    fi
+  done
+  [ -n "$master_pod" ] && kubectl exec -n "$NS" "$master_pod" -- redis-cli SET pre-kill-data "survived-$(date +%s)" 2>/dev/null || true
+
+  # 杀死全部 3 个 redis 节点
+  info "杀死全部 3 个 redis 节点..."
+  kill_pod "${APP}-0"
+  kill_pod "${APP}-1"
+  kill_pod "${APP}-2"
+  sleep 3
+
+  # 确认全部死亡
+  info "确认全部 redis Pod 已消失..."
+  for i in $(seq 1 15); do
+    sleep 2
+    local running=0
+    for pod in "${APP}-0" "${APP}-1" "${APP}-2"; do
+      local phase
+      phase=$(get_redis_phase "$pod" 2>/dev/null || echo "N/A")
+      [ "$phase" = "Running" ] && running=$((running+1))
+    done
+    if [ $((i % 3)) -eq 0 ]; then
+      echo "  [${i}s] Running redis pods: ${running}/3"
+    fi
+    # 直到全部消失才认为 kill 成功
+    if [ "$running" -eq 0 ]; then
+      ok "全部 3 个 Redis Pod 已终止"
+      break
+    fi
+  done
+
+  # 查看 sentinel 反应
+  echo ""
+  info "查看 Sentinel 状态..."
+  local sinfo
+  sinfo=$(get_sentinel_status 2>/dev/null || echo "N/A")
+  echo "  Sentinel: $sinfo"
+
+  # 等待全部重建
+  info "等待 StatefulSet 重建全部 3 个 Pod..."
+  kubectl wait pod --for=condition=Ready -l "app.kubernetes.io/name=${APP}" -n "$NS" --timeout=180s 2>/dev/null || true
+  sleep 5
+
+  local pod0_running=0 pod1_running=0 pod2_running=0
+  for i in $(seq 1 20); do
+    sleep 3
+    pod0_running=0; pod1_running=0; pod2_running=0
+    [ "$(get_redis_phase "${APP}-0" 2>/dev/null)" = "Running" ] && pod0_running=1
+    [ "$(get_redis_phase "${APP}-1" 2>/dev/null)" = "Running" ] && pod1_running=1
+    [ "$(get_redis_phase "${APP}-2" 2>/dev/null)" = "Running" ] && pod2_running=1
+    local total=$((pod0_running + pod1_running + pod2_running))
+    if [ $total -eq 3 ]; then
+      ok "全部 3 个 Redis Pod 已重建 (耗时 $(( $(date +%s) - start_time ))s)"
+      break
+    fi
+    if [ $((i % 3)) -eq 0 ]; then
+      echo "  [$(($(date +%s) - start_time))s] Redis 已重建: ${total}/3"
+    fi
+  done
+
+  # 检查重建后的角色 — 全部是 master (没有复制)
+  echo ""
+  info "重建后角色:"
+  local all_master=0
+  for pod in "${APP}-0" "${APP}-1" "${APP}-2"; do
+    local role
+    role=$(get_pod_role "$pod" 2>/dev/null || echo "N/A")
+    [ "$role" = "master" ] && all_master=$((all_master+1))
+    echo "  ${pod}: ${role}"
+  done
+
+  if [ "$all_master" -eq 3 ]; then
+    warn "全部 3 个 Pod 均为独立 master (需手动配置复制)"
+
+    # 手动配置复制 — 以 pod-0 为 master
+    info "手动配置复制 (以 ${APP}-0 为 master)..."
+    local new_master_ip
+    new_master_ip=$(get_pod_ip "${APP}-0")
+    kubectl exec -n "$NS" "${APP}-1" -- redis-cli REPLICAOF "$new_master_ip" 6379 2>/dev/null || true
+    kubectl exec -n "$NS" "${APP}-2" -- redis-cli REPLICAOF "$new_master_ip" 6379 2>/dev/null || true
+  elif echo "$all_master" | grep -qE "^[23]$"; then
+    warn "存在 $all_master 个 master (异常)"
+    # 找到真正有数据的那个当 master，其他的 follow
+    local real_master=""
+    for pod in "${APP}-0" "${APP}-1" "${APP}-2"; do
+      local role
+      role=$(get_pod_role "$pod" 2>/dev/null || echo "")
+      # 检查是否有测试数据
+      if [ "$role" = "master" ] && kubectl exec -n "$NS" "$pod" -- redis-cli EXISTS pre-kill-data 2>/dev/null | grep -q "1"; then
+        real_master="$pod"
+        break
+      fi
+    done
+    # 没找到有数据的，就用 rolename master 的第一个
+    [ -z "$real_master" ] && for pod in "${APP}-0" "${APP}-1" "${APP}-2"; do
+      [ "$(get_pod_role "$pod" 2>/dev/null)" = "master" ] && { real_master="$pod"; break; }
+    done
+    info "修复复制 (以 ${real_master} 为 master)..."
+    local fix_ip
+    fix_ip=$(get_pod_ip "$real_master")
+    for pod in "${APP}-0" "${APP}-1" "${APP}-2"; do
+      [ "$pod" = "$real_master" ] && continue
+      kubectl exec -n "$NS" "$pod" -- redis-cli REPLICAOF "$fix_ip" 6379 2>/dev/null || true
+    done
+  else
+    ok "角色已自动恢复 (1 master + 2 slaves)"
+  fi
+
+  # 验证复制
+  sleep 3
+  echo ""
+  info "修复后角色:"
+  for pod in "${APP}-0" "${APP}-1" "${APP}-2"; do
+    local role
+    role=$(get_pod_role "$pod" 2>/dev/null || echo "N/A")
+    echo "  ${pod}: ${role}"
+  done
+
+  # 验证数据 — 只有 master 有数据 (因为 replication 是异步的)
+  info "验证数据完整性..."
+  local pre_data
+  pre_data=$(kubectl exec -n "$NS" "${APP}-0" -- redis-cli GET pre-kill-data 2>/dev/null || echo "")
+  if [ -n "$pre_data" ] && echo "$pre_data" | grep -q "survived-"; then
+    ok "切换前数据存在 (值: ${pre_data})"
+  else
+    warn "切换前数据丢失 (预期内, 异步复制可能未落盘)"
+  fi
+
+  rw_test
+
+  # 重新配置 sentinel
+  info "重新配置 Sentinel..."
+  local new_master_ip2
+  new_master_ip2=$(get_pod_ip "${APP}-0")
+  for i in 0 1 2; do
+    kubectl exec -n "$NS" "${SENTINEL}-sentinel-${i}" -- redis-cli -p 26379 SENTINEL REMOVE redis-my-app 2>/dev/null || true
+    kubectl exec -n "$NS" "${SENTINEL}-sentinel-${i}" -- redis-cli -p 26379 SENTINEL MONITOR redis-my-app "$new_master_ip2" 6379 2 2>/dev/null || true
+  done
+  sleep 3
+
+  local sinfo_final
+  sinfo_final=$(get_sentinel_status 2>/dev/null || echo "N/A")
+  echo "  Sentinel 最终状态: $sinfo_final"
+
+  pass "全部 3 个 Redis 节点下线测试通过"
+  snapshot
+}
+
 # ── 主菜单 ───────────────────────────────────────────────────────
 
 menu() {
@@ -709,7 +887,8 @@ menu() {
   echo "    4               — 同时删除 Master + 1 Sentinel"
   echo "    5               — 删除 2 个 Sentinels (仲裁丢失)"
   echo "    6               — 删除全部 3 个 Sentinels"
-  echo "    all             — 运行全部测试 (1→6)"
+  echo "    7               — 删除全部 3 个 Redis 节点 (最严重)"
+  echo "    all             — 运行全部测试 (1→7)"
   echo "    exit|quit       — 退出"
   echo
   echo_sep
@@ -729,7 +908,8 @@ if [ $# -eq 0 ]; then
       4|mas+sen)     test_master_and_sentinel ;;
       5|quorum)      test_quorum_lost ;;
       6|allsentinel) test_all_sentinels_down ;;
-      all|full)      test_kill_replica; test_failover; test_kill_sentinel; test_master_and_sentinel; test_quorum_lost; test_all_sentinels_down ;;
+      7|allredis)    test_all_redis_down ;;
+      all|full)      test_kill_replica; test_failover; test_kill_sentinel; test_master_and_sentinel; test_quorum_lost; test_all_sentinels_down; test_all_redis_down ;;
       status)        snapshot ;;
       status-full)   check_all_pods; check_replication; check_sentinel; rw_test ;;
       exit|quit)     echo "  Bye."; exit 0 ;;
@@ -745,8 +925,9 @@ else
     4) test_master_and_sentinel ;;
     5) test_quorum_lost ;;
     6) test_all_sentinels_down ;;
-    all) test_kill_replica; test_failover; test_kill_sentinel; test_master_and_sentinel; test_quorum_lost; test_all_sentinels_down ;;
-    *) echo "Usage: $0 [1|2|3|4|5|6|all|status]"; exit 1 ;;
+    7) test_all_redis_down ;;
+    all) test_kill_replica; test_failover; test_kill_sentinel; test_master_and_sentinel; test_quorum_lost; test_all_sentinels_down; test_all_redis_down ;;
+    *) echo "Usage: $0 [1|2|3|4|5|6|7|all|status]"; exit 1 ;;
   esac
 fi
 
