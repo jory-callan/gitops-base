@@ -3,7 +3,7 @@ kind: Kustomization
 
 helmCharts:
   - name: gitea
-    repo: https://dl.gitea.com/charts/
+    repo: http://192.168.5.103:8081/repository/helm-hosted/
     version: 12.6.0
     releaseName: gitea
     namespace: gitea

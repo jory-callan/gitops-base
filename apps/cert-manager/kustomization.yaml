@@ -3,7 +3,7 @@ kind: Kustomization
 
 helmCharts:
   - name: cert-manager
-    repo: https://charts.jetstack.io
+    repo: http://192.168.5.103:8081/repository/helm-hosted/
     version: v1.20.2
     releaseName: cert-manager
     namespace: cert-manager

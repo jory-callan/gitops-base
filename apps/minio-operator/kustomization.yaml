@@ -3,7 +3,7 @@ kind: Kustomization
 
 helmCharts:
   - name: operator
-    repo: https://operator.min.io/
+    repo: http://192.168.5.103:8081/repository/helm-hosted/
     version: 7.1.1
     releaseName: minio-operator
     namespace: minio-operator
