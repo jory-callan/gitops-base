@@ -1,0 +1,56 @@
+# Velero values
+# Referenced by argocd/velero/application.yaml
+
+# ── AWS Plugin（MinIO S3 兼容）──────────────
+initContainers:
+  - name: velero-plugin-for-aws
+    image: velero/velero-plugin-for-aws:v1.11.1
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - name: plugins
+        mountPath: /target
+
+# ── S3 后端（MinIO）─────────────────────────
+configuration:
+  backupStorageLocation:
+    - name: default
+      provider: aws
+      bucket: velero
+      config:
+        region: us-east-1
+        s3ForcePathStyle: "true"
+        s3Url: http://minio.minio.svc.cluster.local:80
+
+# ── 凭证（复用 MinIO root）──────────────────
+credentials:
+  useSecret: true
+  existingSecret: velero-cloud-credentials
+
+# ── 定时备份 ────────────────────────────────
+schedules:
+  daily-backup:
+    schedule: "0 2 * * *"
+    useOwnerReferencesInBackup: true
+    template:
+      ttl: "168h"
+      storageLocation: default
+      includedNamespaces:
+        - "*"
+      excludedNamespaces:
+        - kube-system
+        - kube-public
+        - kube-node-lease
+
+# ── 环境适配 ───────────────────────────────
+# NFS 不支持快照，关闭 CSI 快照功能
+deployNodeAgent: false
+snapshotsEnabled: false
+
+# ── 资源配置 ────────────────────────────────
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
