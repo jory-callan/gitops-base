@@ -4,7 +4,7 @@
 # ── AWS Plugin（MinIO S3 兼容）──────────────
 initContainers:
   - name: velero-plugin-for-aws
-    image: velero/velero-plugin-for-aws:v1.11.1
+    image: velero/velero-plugin-for-aws:v1.13.1
     imagePullPolicy: IfNotPresent
     volumeMounts:
       - name: plugins

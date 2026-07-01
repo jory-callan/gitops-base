@@ -4,7 +4,7 @@ kind: Kustomization
 helmCharts:
   - name: velero
     repo: http://192.168.5.103:8081/repository/helm-hosted/
-    version: 8.2.0
+    version: 12.1.0
     releaseName: velero
     namespace: velero
     valuesFile: values.yaml
